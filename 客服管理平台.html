@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客服品質管理平台 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+/* ============================================================
+   BASE
+============================================================ */
+:root {
+  --primary:#1e293b; --accent:#3b82f6; --success:#10b981;
+  --warn:#f59e0b; --danger:#ef4444; --shopee:#ee4d2d;
+  --damo:#16417C; --damo-l:#dce9f8;
+  --mao:#55C5C7;  --mao-l:#d9f5f5;
+  --ph:#000000;   --ph-l:#f0f0f0;
+  --yu:#BF2A1D;   --yu-l:#fde8e6;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Microsoft JhengHei',Arial,sans-serif;background:#f1f5f9;color:#1e293b;font-size:13px;}
+a{color:inherit;text-decoration:none;}
+
+/* ── HEADER ── */
+.hd{background:var(--primary);color:white;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.hd-title{font-size:18px;font-weight:700;}
+.hd-sub{font-size:11px;opacity:.55;margin-top:2px;}
+.hd-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.hd-meta{font-size:11px;opacity:.5;}
+.hd-btns{display:flex;gap:8px;}
+.btn{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;transition:opacity .2s;}
+.btn:hover{opacity:.85;}
+.btn-accent{background:var(--accent);color:white;}
+.btn-green{background:var(--success);color:white;}
+.btn-gray{background:#374151;color:white;}
+.btn-shopee{background:var(--shopee);color:white;}
+
+/* ── STATUS PILL ── */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600;}
+.pill-off{background:#374151;color:#9ca3af;}
+.pill-ok{background:#065f46;color:#6ee7b7;}
+.pill-err{background:#7f1d1d;color:#fca5a5;}
+.pill-pending{background:#78350f;color:#fcd34d;}
+
+/* ── FILTER BAR ── */
+.fbar{background:white;padding:10px 20px;display:flex;gap:14px;align-items:center;border-bottom:1px solid #e2e8f0;flex-wrap:wrap;}
+.fbar label{font-size:12px;color:#64748b;font-weight:600;}
+.fbar select{padding:5px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;background:white;}
+
+/* ── TABS ── */
+.tabs{background:white;border-bottom:2px solid #e2e8f0;padding:0 20px;display:flex;gap:0;overflow-x:auto;}
+.tab{padding:11px 18px;font-size:13px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;color:#64748b;font-weight:600;white-space:nowrap;transition:all .2s;}
+.tab:hover{color:var(--accent);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* ── CONTENT ── */
+.panel{display:none;padding:18px 20px;}
+.panel.active{display:block;}
+
+/* ── KPI CARDS ── */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:18px;}
+.kpi{background:white;border-radius:10px;padding:14px 18px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:4px solid #e2e8f0;}
+.kpi.c-blue{border-left-color:var(--accent);}
+.kpi.c-green{border-left-color:var(--success);}
+.kpi.c-orange{border-left-color:var(--warn);}
+.kpi.c-red{border-left-color:var(--danger);}
+.kpi.c-purple{border-left-color:#8b5cf6;}
+.kpi.c-shopee{border-left-color:var(--shopee);}
+.kpi-lbl{font-size:11px;color:#64748b;margin-bottom:5px;}
+.kpi-val{font-size:24px;font-weight:800;color:#0f172a;line-height:1.1;}
+.kpi-sub{font-size:11px;color:#94a3b8;margin-top:4px;}
+.kpi-trend{font-size:11px;margin-top:5px;}
+.kpi-up{color:var(--success);}
+.kpi-down{color:var(--danger);}
+
+/* ── CHARTS ── */
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:14px;margin-bottom:18px;}
+.ccard{background:white;border-radius:10px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.ccard h3{font-size:13px;font-weight:700;color:#334155;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.ccard canvas{max-height:240px;}
+.ccard.full{grid-column:1/-1;}
+
+/* ── BRAND COLORS ── */
+.bb{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;}
+.bb-damo{background:var(--damo-l);color:var(--damo);}
+.bb-mao{background:var(--mao-l);color:var(--mao);}
+.bb-ph{background:var(--ph-l);color:var(--ph);}
+.bb-yu{background:var(--yu-l);color:var(--yu);}
+.brand-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.btag{padding:5px 14px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;border:2px solid transparent;transition:all .2s;}
+.btag.all{background:#f1f5f9;color:#475569;}
+.btag.all.act,.btag.all:hover{background:var(--primary);color:white;}
+.btag.damo{background:var(--damo-l);color:var(--damo);}
+.btag.damo.act,.btag.damo:hover{background:var(--damo);color:white;}
+.btag.mao{background:var(--mao-l);color:var(--mao);}
+.btag.mao.act,.btag.mao:hover{background:var(--mao);color:white;}
+.btag.ph{background:var(--ph-l);color:var(--ph);}
+.btag.ph.act,.btag.ph:hover{background:var(--ph);color:white;}
+.btag.yu{background:var(--yu-l);color:var(--yu);}
+.btag.yu.act,.btag.yu:hover{background:var(--yu);color:white;}
+
+/* ── TABLE ── */
+.tcard{background:white;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;margin-bottom:16px;}
+.thead2{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;gap:8px;}
+.thead2 h3{font-size:13px;font-weight:700;color:#334155;}
+.tcontrols{display:flex;gap:8px;flex-wrap:wrap;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:#f8fafc;padding:9px 10px;text-align:left;font-weight:700;color:#475569;border-bottom:1px solid #e2e8f0;white-space:nowrap;}
+td{padding:9px 10px;border-bottom:1px solid #f8fafc;vertical-align:middle;}
+tr:hover td{background:#fafafa;}
+.badge{display:inline-block;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700;}
+.lv1{background:#fee2e2;color:#dc2626;}
+.lv2{background:#fed7aa;color:#c2410c;}
+.lv3{background:#fef9c3;color:#ca8a04;}
+.lv4{background:#dcfce7;color:#16a34a;}
+.search-inp{padding:6px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;width:180px;font-family:inherit;}
+.pg{display:flex;gap:4px;padding:10px 16px;justify-content:flex-end;align-items:center;}
+.pg-btn{padding:3px 9px;border:1px solid #cbd5e1;border-radius:4px;background:white;font-size:11px;cursor:pointer;}
+.pg-btn.act{background:var(--accent);color:white;border-color:var(--accent);}
+.pg-info{font-size:11px;color:#94a3b8;margin-right:8px;}
+
+/* ── DEPT BADGES ── */
+.dept{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;}
+.d-品管{background:#fee2e2;color:#dc2626;}
+.d-採購{background:#fed7aa;color:#c2410c;}
+.d-倉儲{background:#fef9c3;color:#a16207;}
+.d-IT{background:#ede9fe;color:#7c3aed;}
+.d-行銷{background:#dcfce7;color:#15803d;}
+.d-研發{background:#cffafe;color:#0e7490;}
+.d-客服{background:#dbeafe;color:#1d4ed8;}
+.d-物流{background:#f3f4f6;color:#4b5563;}
+.d-品牌{background:#fce7f3;color:#9d174d;}
+.assign-btn{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;border:none;transition:all .2s;}
+.assign-btn:hover{transform:scale(1.05);opacity:.85;}
+.assign-btn.done{background:#166534;color:white;cursor:default;transform:none;}
+
+/* ── CHANNEL ICONS ── */
+.chi{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700;}
+.ch-LINE{background:#06c755;color:white;}
+.ch-蝦皮{background:#ee4d2d;color:white;}
+.ch-FB,.ch-fb{background:#1877f2;color:white;}
+.ch-IG{background:#e1306c;color:white;}
+.ch-來電{background:#64748b;color:white;}
+
+/* ── COMPLAINT TEXT ── */
+.ctext{color:#334155;font-size:12px;line-height:1.5;}
+
+/* ── PROGRESS ── */
+.prog-sel{width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;font-family:inherit;background:white;cursor:pointer;margin-bottom:4px;}
+.prog-sel.st-wait{background:#f8fafc;color:#64748b;}
+.prog-sel.st-doing{background:#fef9c3;color:#92400e;border-color:#fde68a;font-weight:700;}
+.prog-sel.st-done{background:#dcfce7;color:#166534;border-color:#86efac;font-weight:700;}
+.prog-note{width:100%;padding:5px 7px;border:1px solid #e2e8f0;border-radius:4px;font-size:11px;font-family:inherit;resize:vertical;min-height:38px;max-height:90px;color:#334155;line-height:1.4;}
+.prog-note:focus{outline:none;border-color:var(--accent);}
+.prog-ts{font-size:10px;color:#94a3b8;margin-top:3px;}
+
+/* ── GOOGLE PANEL ── */
+.gcard{background:white;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.gcard h4{font-size:13px;font-weight:700;margin-bottom:10px;}
+.g-rating{font-size:32px;font-weight:900;color:#0f172a;}
+.g-stars{color:#f59e0b;font-size:18px;}
+.g-count{font-size:11px;color:#94a3b8;}
+.g-fresh{font-size:10px;color:#94a3b8;margin-top:6px;}
+.platform-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:16px;}
+
+/* ── SHOPEE CARD ── */
+.srate{font-size:28px;font-weight:900;}
+.srate.ok{color:var(--success);}
+.srate.warn{color:var(--warn);}
+.srate.bad{color:var(--danger);}
+.sbar-bg{background:#f1f5f9;border-radius:6px;height:8px;overflow:hidden;margin-top:6px;}
+.sbar-fill{height:100%;border-radius:6px;transition:width .6s;}
+
+/* ── SATISFACTION ── */
+.sat-val{font-size:28px;font-weight:900;}
+.sat-bar-bg{background:#f1f5f9;border-radius:6px;height:8px;overflow:hidden;margin-top:6px;}
+.sat-bar-fill{height:100%;border-radius:6px;}
+
+/* ── SHOPEE WEEKLY TABLE ── */
+.sw-controls{padding:12px 16px;display:flex;gap:12px;align-items:center;background:white;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;}
+.sw-nav button{width:26px;height:26px;border:1px solid #cbd5e1;background:white;border-radius:4px;cursor:pointer;}
+.sw-table{width:100%;border-collapse:collapse;font-size:12px;}
+.sw-table th{background:#1e293b;color:white;padding:9px 8px;text-align:center;border:1px solid #334155;white-space:nowrap;font-size:11px;}
+.sw-table th.wk-now{background:#ee4d2d;}
+.sw-table td{padding:0;border:1px solid #e2e8f0;vertical-align:middle;}
+.sw-store-row td{background:#fff7ed;font-weight:700;padding:7px 10px;border-left:3px solid var(--shopee);}
+.sw-store-row.secondary td{background:#f0fdf4;border-left-color:var(--success);}
+.sw-label{padding:7px 10px;color:#475569;background:#fafafa;white-space:nowrap;font-size:11px;}
+.sw-inp{width:100%;border:none;padding:6px;font-size:12px;text-align:center;background:transparent;outline:none;font-family:inherit;}
+.sw-inp:focus{background:#eff6ff;}
+.sw-inp[readonly]{background:#f8fafc;color:#94a3b8;}
+.sw-note{width:100%;border:none;padding:6px;font-size:11px;background:transparent;outline:none;font-family:inherit;resize:none;height:34px;color:#64748b;}
+.sw-note:focus{background:#fefce8;}
+td.ok{background:#f0fdf4;}
+td.warn{background:#fffbeb;}
+td.bad{background:#fef2f2;}
+td.note-cell{background:#fffbeb;}
+.thr-panel{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin:0 0 12px;display:none;}
+.thr-panel.show{display:block;}
+.thr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:8px;}
+.thr-item{display:flex;align-items:center;gap:6px;font-size:12px;}
+.thr-item input{width:52px;padding:4px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;}
+
+/* ── DEPT SUMMARY ── */
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;}
+.dept-card{background:white;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);text-align:center;cursor:pointer;border:2px solid transparent;transition:all .2s;}
+.dept-card:hover{border-color:var(--accent);}
+.dept-icon{font-size:22px;margin-bottom:5px;}
+.dept-name{font-size:12px;font-weight:700;color:#334155;}
+.dept-num{font-size:22px;font-weight:900;color:var(--danger);margin-top:2px;}
+.dept-sub{font-size:10px;color:#94a3b8;}
+
+/* ── NOTICE ── */
+.notice{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:12px;}
+.notif{position:fixed;top:18px;right:18px;background:#166534;color:white;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;}
+.notif.show{opacity:1;}
+
+/* ── ROUTE TABLE ── */
+.rt{width:100%;border-collapse:collapse;font-size:12px;}
+.rt th{background:#f8fafc;padding:8px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;font-weight:700;}
+.rt td{padding:8px 10px;border-bottom:1px solid #f8fafc;}
+
+/* ── SECTION TITLE ── */
+.stitle{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px;}
+
+/* ── LOADING ── */
+.loading{display:flex;align-items:center;gap:8px;color:#64748b;padding:20px;font-size:13px;}
+.spin{width:16px;height:16px;border:2px solid #e2e8f0;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── MODAL ── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:center;}
+.modal-ov.open{display:flex;}
+.modal{background:white;border-radius:12px;padding:22px;max-width:520px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.modal-close{float:right;cursor:pointer;font-size:17px;color:#94a3b8;background:none;border:none;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .charts{grid-template-columns:1fr;}
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .hd{flex-direction:column;gap:6px;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<div class="notif" id="notif"></div>
+
+<!-- ===== HEADER ===== -->
+<div class="hd">
+  <div>
+    <div class="hd-title">📊 客服品質管理平台 2026</div>
+    <div class="hd-sub">達摩本草 ｜ 毛孩時代 ｜ PowerHero ｜ 御熹堂 ｜ 及其他品牌</div>
+  </div>
+  <div class="hd-right">
+    <div class="hd-meta" id="lastSyncLabel">⏳ 載入中...</div>
+    <div class="hd-btns">
+      <span id="connPill" class="pill pill-pending">🟡 同步中</span>
+      <button class="btn btn-green" onclick="syncAll()" id="syncBtn">🔄 同步資料</button>
+      <button class="btn btn-gray" onclick="showApiModal()">⚙️ 設定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FILTER BAR ===== -->
+<div class="fbar">
+  <label>品牌：</label>
+  <select id="fBrand" onchange="updateAll()">
+    <option value="all">全部品牌</option>
+    <option>達摩本草</option><option>毛孩時代</option>
+    <option>PowerHero</option><option>御熹堂</option>
+  </select>
+  <label>月份：</label>
+  <select id="fMonth" onchange="updateAll()">
+    <option value="all" selected>全部月份</option>
+    <option value="0">2026/01</option><option value="1">2026/02</option>
+    <option value="2">2026/03</option><option value="3">2026/04</option>
+    <option value="4">2026/05</option><option value="5">2026/06</option>
+    <option value="6">2026/07</option><option value="7">2026/08</option>
+    <option value="8">2026/09</option><option value="9">2026/10</option>
+    <option value="10">2026/11</option><option value="11">2026/12</option>
+  </select>
+</div>
+
+<!-- ===== TABS ===== -->
+<div class="tabs">
+  <div class="tab active"  onclick="sw('overview')">📈 總覽</div>
+  <div class="tab"         onclick="sw('contact')">📞 進電分析</div>
+  <div class="tab"         onclick="sw('complaint')">⚠️ 客訴管理</div>
+  <div class="tab"         onclick="sw('shopee')">🛒 蝦皮週報</div>
+  <div class="tab"         onclick="sw('platform')">⭐ 平台數據</div>
+  <div class="tab"         onclick="sw('routing')">📋 指派規則</div>
+</div>
+
+<!-- ====================================================
+     TAB: 總覽
+==================================================== -->
+<div class="panel active" id="p-overview">
+  <div class="kpi-row" id="kpiGrid"></div>
+  <div class="charts">
+    <div class="ccard full"><h3>📈 各品牌月進電量趨勢</h3><canvas id="cTrend"></canvas></div>
+    <div class="ccard"><h3>📡 進電渠道分布（本月）</h3><canvas id="cChanPie"></canvas></div>
+    <div class="ccard"><h3>😊 客戶滿意度 (%)</h3><canvas id="cSat"></canvas></div>
+    <div class="ccard"><h3>⭐ Google 評論數</h3><canvas id="cGoogle"></canvas></div>
+    <div class="ccard"><h3>🛒 蝦皮聊聊回應率（月底）</h3><canvas id="cShopee"></canvas></div>
+  </div>
+</div>
+
+<!-- ====================================================
+     TAB: 進電分析
+==================================================== -->
+<div class="panel" id="p-contact">
+  <div class="charts">
+    <div class="ccard full"><h3>📊 各渠道月進電量</h3><canvas id="cChanTrend"></canvas></div>
+    <div class="ccard"><h3>🏷️ 進電類型分布（3-4月）</h3><canvas id="cType"></canvas></div>
+    <div class="ccard"><h3>📊 各渠道進電量（堆疊）</h3><canvas id="cPhone"></canvas></div>
+  </div>
+
+  <!-- 產品詢問度 -->
+  <div class="stitle">🔍 產品詢問度 <span id="piFilterLabel" style="font-size:12px;font-weight:400;color:#64748b;margin-left:8px;"></span></div>
+  <div style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
+    <input id="piSearch" placeholder="🔍 搜尋產品..." oninput="renderProductChart()"
+      style="padding:5px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:200px;">
+    <span style="font-size:11px;color:#94a3b8;">點擊橫條可查看週次明細｜品牌/月份請使用上方篩選</span>
+  </div>
+  <!-- API 診斷訊息（同步後自動顯示） -->
+  <div id="piDebugBar" style="display:none;margin-bottom:10px;padding:8px 14px;border-radius:8px;font-size:12px;border:1px solid #e2e8f0;background:#f8fafc;">
+    <span id="piDebugMsg"></span>
+    <span style="float:right;cursor:pointer;color:#94a3b8;" onclick="document.getElementById('piDebugBar').style.display='none'">✕ 關閉</span>
+  </div>
+  <div class="charts">
+    <div class="ccard" style="flex:2;min-width:320px;">
+      <h3>📦 Top 10 產品詢問量</h3>
+      <canvas id="cProdTop" style="max-height:320px;"></canvas>
+      <div id="piNoData" style="display:none;text-align:center;color:#94a3b8;padding:40px 16px;">
+        <div style="font-size:30px;margin-bottom:8px;">📭</div>
+        <div id="piNoDataMsg" style="font-size:13px;"></div>
+        <div style="font-size:11px;margin-top:6px;color:#cbd5e1;">請點右上角「🔄 同步資料」</div>
+      </div>
+    </div>
+    <div class="ccard" style="flex:1;min-width:260px;" id="piDetailCard">
+      <h3>📅 週次明細 <span id="piDetailName" style="color:var(--accent);"></span></h3>
+      <div id="piDetailBody" style="font-size:12px;color:#94a3b8;padding:20px 0;text-align:center;">
+        ← 點擊左側產品查看週次分布
+      </div>
+    </div>
+  </div>
+  <div class="tcard">
+    <div class="thead2"><h3>📋 各品牌進電明細</h3></div>
+    <table><thead><tr>
+      <th>品牌</th><th>月份</th><th>蝦皮</th><th>LINE</th><th>FB</th><th>IG</th><th>電話</th><th>文字客服</th><th>總進電量</th>
+    </tr></thead><tbody id="tContact"></tbody></table>
+  </div>
+</div>
+
+<!-- ====================================================
+     TAB: 客訴管理
+==================================================== -->
+<div class="panel" id="p-complaint">
+  <div class="stitle">📦 待指派部門件數</div>
+  <div class="dept-grid" id="deptGrid"></div>
+
+  <!-- 客訴篩選列 -->
+  <div class="fbar" style="margin-bottom:14px;border-radius:10px;border:1px solid #e2e8f0;">
+    <label>🔍 篩選</label>
+    <input class="search-inp" id="cSearch" placeholder="搜尋品牌/內容/產品..." oninput="filterCompl()" style="width:180px;">
+    <label>大分類</label>
+    <select class="search-inp" style="width:110px" id="cCatF" onchange="updateSubCatFilter();filterCompl()">
+      <option value="">全部</option>
+      <option>產品品質</option><option>產品疑慮</option><option>倉庫疏失</option>
+      <option>包裝材料</option><option>系統/金流</option><option>行銷活動</option>
+      <option>客服品質</option><option>服務需求</option>
+    </select>
+    <label>小分類</label>
+    <select class="search-inp" style="width:130px" id="cSubCatF" onchange="filterCompl()">
+      <option value="">全部</option>
+    </select>
+    <label>等級</label>
+    <select class="search-inp" style="width:90px" id="cLvF" onchange="filterCompl()">
+      <option value="">全部</option>
+      <option>第一級</option><option>第二級</option><option>第三級</option><option>第四級</option>
+    </select>
+    <label>品牌</label>
+    <select class="search-inp" style="width:100px" id="cBrandF" onchange="filterCompl()">
+      <option value="">全部</option>
+      <option>達摩本草</option><option>毛孩時代</option><option>PowerHero</option><option>御熹堂</option>
+    </select>
+    <label>部門</label>
+    <select class="search-inp" style="width:100px" id="cDeptF" onchange="filterCompl()">
+      <option value="">全部</option>
+      <option>客服部</option><option>品管部</option><option>採購部</option>
+      <option>倉儲部</option><option>品牌部</option>
+    </select>
+    <label>狀態</label>
+    <select class="search-inp" style="width:100px" id="cStatF" onchange="filterCompl()">
+      <option value="">全部</option>
+      <option value="待處理">⏳ 待處理</option>
+      <option value="處理中">🔄 處理中</option>
+      <option value="已完成">✅ 已完成</option>
+    </select>
+  </div>
+
+  <!-- 分類環比 -->
+  <div id="catMoMSection" style="margin-bottom:14px;display:none;">
+    <div class="stitle" id="catMoMTitle">📈 本月客訴分類 vs 上月</div>
+    <div id="catMoMGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:8px;"></div>
+  </div>
+
+  <div class="charts">
+    <div class="ccard"><h3>📊 客訴分類分布</h3><canvas id="cComplPie"></canvas></div>
+    <div class="ccard"><h3>🚨 客訴等級分布</h3><canvas id="cSeverity"></canvas></div>
+  </div>
+  <div class="tcard">
+    <div class="thead2">
+      <h3>⚠️ 客訴紀錄（即時）<span id="complCount" style="font-size:11px;color:#94a3b8;margin-left:6px;"></span></h3>
+    </div>
+    <div id="complLoading" class="loading"><div class="spin"></div>載入客訴資料中...</div>
+    <table id="complTable" style="display:none">
+      <thead><tr>
+        <th>日期</th><th>品牌</th><th>來源</th><th>大分類</th><th>小分類</th><th>等級</th>
+        <th>客訴內容</th><th>產品</th><th>案件後續處理</th><th>指派部門</th><th style="min-width:200px;">進度 / 備註</th>
+      </tr></thead>
+      <tbody id="tCompl"></tbody>
+    </table>
+    <div class="pg" id="complPg"></div>
+  </div>
+</div>
+
+<!-- ====================================================
+     TAB: 蝦皮週報
+==================================================== -->
+<div class="panel" id="p-shopee">
+  <div class="notice">
+    📌 蝦皮無公開 API，請每週由客服人員填入。資料自動儲存於瀏覽器，支援匯出 CSV。
+    <button class="btn btn-shopee" style="margin-left:12px;padding:4px 10px;" onclick="exportShopeeCSV()">📥 匯出 CSV</button>
+  </div>
+  <div class="thr-panel" id="thrPanel">
+    <strong style="font-size:12px;">⚙️ 異常門檻設定</strong>
+    <div class="thr-grid">
+      <div class="thr-item">聯絡回應率 警示 &lt; <input id="tw1" type="number" value="85">%</div>
+      <div class="thr-item">聯絡回應率 異常 &lt; <input id="tw2" type="number" value="75">%</div>
+      <div class="thr-item">打單未完成 異常 &gt; <input id="tw3" type="number" value="5">%</div>
+      <div class="thr-item">延遲出貨 警示 &gt; <input id="tw4" type="number" value="1">%</div>
+      <div class="thr-item">延遲出貨 異常 &gt; <input id="tw5" type="number" value="3">%</div>
+      <div class="thr-item">出貨天數 警示 &gt; <input id="tw6" type="number" value="2">日</div>
+      <div class="thr-item">出貨天數 異常 &gt; <input id="tw7" type="number" value="3">日</div>
+    </div>
+    <button class="btn btn-green" style="margin-top:8px;font-size:12px;" onclick="applyThr()">✅ 套用</button>
+  </div>
+  <div class="tcard">
+    <div class="sw-controls">
+      <div class="sw-nav" style="display:flex;align-items:center;gap:6px;">
+        <button onclick="shiftWk(-1)">◀</button>
+        <span id="wkLabel" style="font-weight:700;font-size:13px;min-width:200px;text-align:center;"></span>
+        <button onclick="shiftWk(1)">▶</button>
+      </div>
+      <button class="btn btn-gray" style="font-size:12px;" onclick="document.getElementById('thrPanel').classList.toggle('show')">⚙️ 門檻</button>
+      <span id="swAlerts" style="display:none;background:var(--danger);color:white;border-radius:10px;padding:2px 10px;font-size:11px;font-weight:700;"></span>
+      <span style="font-size:11px;color:#94a3b8;margin-left:auto;" id="swSaved"></span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="sw-table" id="swTable">
+        <thead id="swHead"></thead>
+        <tbody id="swBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================
+     TAB: 平台數據
+==================================================== -->
+<div class="panel" id="p-platform">
+  <div class="notice">
+    💡 Google 評論透過 Places API 自動更新。若尚未設定 API 金鑰，顯示 Google Sheets 手動填入的數據。
+    <button class="btn btn-accent" style="margin-left:12px;padding:4px 10px;font-size:11px;" onclick="fetchGoogleReviews()">🔄 更新 Google 評論</button>
+  </div>
+  <div class="stitle">⭐ Google 商業評論（Place ID 已設定）</div>
+  <div class="platform-grid" id="googlePanel"></div>
+  <div class="stitle">🛒 蝦皮聊聊回應率（本月）</div>
+  <div class="platform-grid" id="shopeePanel"></div>
+  <div class="stitle">😊 滿意度調查</div>
+  <div class="platform-grid" id="satPanel"></div>
+</div>
+
+<!-- ====================================================
+     TAB: 指派規則
+==================================================== -->
+<div class="panel" id="p-routing">
+  <div class="tcard" style="padding:18px 20px;">
+    <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;">📋 客訴分類 → 指派部門對照表</h3>
+    <table class="rt">
+      <thead><tr><th>原分類</th><th>細化說明</th><th>指派部門</th><th>優先級</th><th>處理說明</th></tr></thead>
+      <tbody>
+        <tr><td>產品品質</td><td>色差/外觀異常、味道/氣味異常、結塊、受潮/變質、異物/混料</td><td><span class="dept d-品管">品管部</span></td><td>🔴 最高</td><td>立即回收確認，啟動不良品調查</td></tr>
+        <tr><td>產品疑慮</td><td>效果不明顯、身體不適/不良反應、成分/來源疑慮</td><td><span class="dept d-品管">品管部</span></td><td>🟠 高</td><td>品質確認，需留樣回廠檢驗</td></tr>
+        <tr><td>倉庫疏失</td><td>延遲出貨、內容物短少/多出、收到錯誤商品</td><td><span class="dept d-倉儲">倉儲部</span></td><td>🟠 高</td><td>核查出貨單，揀貨 SOP 檢討</td></tr>
+        <tr><td>包裝材料</td><td>外箱/包材破損、產品包裝破損、夾鏈袋/密封異常、瓶蓋/容器破損</td><td><span class="dept d-採購">採購部</span></td><td>🟠 高</td><td>反映廠商包材品質，評估換廠</td></tr>
+        <tr><td>系統/金流</td><td>官網/系統異常、付款方式詢問、折扣/點數未扣抵、付款/結帳失敗</td><td><span class="dept d-客服">客服部</span></td><td>🟡 中</td><td>協助排查，無法解決時升級處理</td></tr>
+        <tr><td>行銷活動</td><td>廣告/真假疑慮、折扣/活動問題</td><td><span class="dept d-客服">客服部</span></td><td>🟡 中</td><td>先安撫說明，廣告疑慮評估移轉品牌部</td></tr>
+        <tr><td>客服品質</td><td>電話行銷困擾、服務態度/流程問題</td><td><span class="dept d-客服">客服部</span></td><td>🟡 中</td><td>協助退訂名單，內部服務品質檢討</td></tr>
+        <tr><td>服務需求</td><td>產品諮詢、服務地區、付款方式、劑型詢問、多規格</td><td><span class="dept d-客服">客服部</span></td><td>🟢 低</td><td>提供產品資訊，解答服務相關疑問</td></tr>
+        <tr style="background:#fdf4ff;"><td colspan="5" style="padding:10px 12px;font-size:12px;">
+          🔀 <strong>品牌部移轉說明：</strong>
+          客服判斷涉及品牌形象、公關危機、廣告內容爭議時，可將案件移轉至
+          <span class="dept d-品牌">品牌部</span> 處理。一般客訴優先由客服部自行消化。
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL: API Settings -->
+<div class="modal-ov" id="apiModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeApiModal()">✕</button>
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">⚙️ API 設定</h3>
+    <p style="font-size:12px;color:#64748b;margin-bottom:10px;">
+      Apps Script 網址已預設。若需更換或新增 Google Places API 金鑰，請在此設定。
+    </p>
+    <p style="font-size:12px;font-weight:600;margin-bottom:4px;">Apps Script 網址</p>
+    <input id="cfgUrl" type="text" style="width:100%;padding:7px;border:1px solid #cbd5e1;border-radius:6px;font-size:11px;font-family:monospace;"
+      value="https://script.google.com/macros/s/AKfycbzyxJHSZL54RCltK8y34j6fXFeIbTtLdU1BzkVu4SGEZRJaPiTCSLvIbAGz0X721SFy8A/exec">
+    <p style="font-size:12px;font-weight:600;margin:10px 0 4px;">Google Places API 金鑰（選填，填入後自動抓取評論）</p>
+    <input id="cfgKey" type="text" style="width:100%;padding:7px;border:1px solid #cbd5e1;border-radius:6px;font-size:11px;font-family:monospace;" placeholder="AIza...">
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn btn-green" style="flex:1;" onclick="saveAndSync()">💾 儲存並同步</button>
+      <button class="btn btn-gray" onclick="closeApiModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONSTANTS
+// ============================================================
+const APPS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwCUpxTPJRWVMi6_UL_oykv5_CAvjdMf25N6WWwar3ETidhQIf-1ilrQ0DElaPPUs51vA/exec';
+const PLACE_IDS = {
+  '達摩本草':'ChIJcaQYTMypQjQR2hxTe5S0T0Y',
+  '毛孩時代':'ChIJwdGqMFapQjQRAsl6i6n-SIc',
+  'PowerHero':'ChIJIeUad_GpQjQR5eYMEW6WmNs',
+  '御熹堂':'ChIJHbEEJVSpQjQRKw1Mlwp63Ck'
+};
+const MONTHS = ['2026/01','2026/02','2026/03','2026/04','2026/05','2026/06','2026/07','2026/08','2026/09','2026/10','2026/11','2026/12'];
+const BRANDS = ['達摩本草','毛孩時代','PowerHero','御熹堂'];
+const BRAND_CLR = {'達摩本草':'#16417C','毛孩時代':'#55C5C7','PowerHero':'#000000','御熹堂':'#BF2A1D'};
+const BRAND_CLS = {'達摩本草':'bb-damo','毛孩時代':'bb-mao','PowerHero':'bb-ph','御熹堂':'bb-yu'};
+const DEPT_ROUTE = {
+  '產品品質':{d:'品管部',  c:'d-品管', i:'🔬'},
+  '產品疑慮':{d:'品管部',  c:'d-品管', i:'🔬'},
+  '倉庫疏失':{d:'倉儲部',  c:'d-倉儲', i:'🏭'},
+  '包裝材料':{d:'採購部',  c:'d-採購', i:'📦'},
+  '系統/金流':{d:'客服部', c:'d-客服', i:'📋'},
+  '行銷活動':{d:'客服部',  c:'d-客服', i:'📋'},
+  '客服品質':{d:'客服部',  c:'d-客服', i:'📋'},
+  '服務需求':{d:'客服部',  c:'d-客服', i:'💬'}
+};
+
+// 舊版大分類 → 新版對應（讓歷史資料仍能正確顯示部門/顏色）
+const OLD_CAT_MAP = {
+  '系統問題': '系統/金流',
+  '產品瑕疵': '產品品質',
+  '包裝問題': '包裝材料',
+  '訂單問題': '倉庫疏失',
+  '出貨速度': '倉庫疏失',
+  '產品反饋': '產品疑慮',
+  '客戶服務': '客服品質',
+  '外包錯誤': '倉庫疏失'
+};
+function normCat(cat){ return OLD_CAT_MAP[cat] || cat; }
+
+// 大分類 → 小分類對應
+const CAT_SUB = {
+  '產品品質':['色差/外觀異常','味道/氣味異常','結塊','夾鏈袋/密封異常','受潮/變質','異物/混料'],
+  '產品疑慮':['效果不明顯','身體不適/不良反應','成分/來源疑慮'],
+  '倉庫疏失':['延遲出貨','內容物短少/多出','收到錯誤商品'],
+  '包裝材料':['外箱/包材破損','產品包裝破損','夾鏈袋/密封異常','瓶蓋/容器破損'],
+  '系統/金流':['官網/系統異常','付款方式詢問','折扣/點數未扣抵','付款/結帳失敗'],
+  '行銷活動':['廣告/真假疑慮','折扣/活動問題'],
+  '客服品質':['電話行銷困擾','服務態度/流程問題'],
+  '服務需求':['產品諮詢','服務地區','付款方式','劑型詢問','多規格(大/小包)']
+};
+
+// ── Static fallback data ──────────────────────────────────────
+const D = {
+  aiRate: {'達摩本草':[null,null,null,null],'毛孩時代':[null,null,null,null],'PowerHero':[null,null,null,null],'御熹堂':[null,null,null,null]}, // AI回覆率 % (待串接)
+  total:   {'達摩本草':[2316,1970,2878,2409],'毛孩時代':[998,950,1893,1710],'PowerHero':[268,201,249,171],'御熹堂':[267,144,196,170]},
+  ch:{
+    '蝦皮':{'達摩本草':[401,370,437,367],'毛孩時代':[584,456,664,522],'PowerHero':[162,128,128,93],'御熹堂':[124,48,73,74]},
+    'LINE': {'達摩本草':[1537,1255,1933,1612],'毛孩時代':[253,267,1086,1024],'PowerHero':[75,62,82,58],'御熹堂':[83,65,79,65]},
+    'FB':   {'達摩本草':[167,124,190,139],'毛孩時代':[15,20,29,50],'PowerHero':[0,0,0,0],'御熹堂':[0,0,0,0]},
+    'IG':   {'達摩本草':[13,19,9,14],'毛孩時代':[39,171,44,71],'PowerHero':[0,0,0,0],'御熹堂':[0,0,0,0]},
+    '電話': {'達摩本草':[198,202,309,277],'毛孩時代':[107,36,70,43],'PowerHero':[31,11,39,20],'御熹堂':[60,31,44,31]}
+  },
+  txt: {'達摩本草':[2118,1768,2569,2132],'毛孩時代':[891,914,1823,1667],'PowerHero':[237,190,210,151],'御熹堂':[207,113,152,139]},
+  phoneIn:  {'達摩本草':[178,179,284,244],'毛孩時代':[85,29,65,39],'PowerHero':[25,11,30,14],'御熹堂':[54,29,44,26]},
+  phoneOut: {'達摩本草':[20,23,25,33],'毛孩時代':[22,7,5,4],'PowerHero':[6,0,9,6],'御熹堂':[6,2,0,5]},
+  shopee: {
+    '達摩本草':[{s:94.19,e:94.32},{s:94.32,e:83.67},{s:83.67,e:95.52},{s:95.52,e:89.92}],
+    '毛孩時代':[{s:94.59,e:94.56},{s:94.56,e:79.18},{s:79.18,e:98.29},{s:98.29,e:97.71}],
+    'PowerHero':[{s:89.11,e:91.82},{s:91.82,e:80.74},{s:80.74,e:94.26},{s:94.26,e:84.95}],
+    '御熹堂':  [{s:88.24,e:90.24},{s:90.24,e:74.07},{s:74.07,e:97.01},{s:97.01,e:94.67}]
+  },
+  google: {
+    rating:  {'達摩本草':[4.9,4.9,4.9,4.9],'毛孩時代':[5.0,5.0,5.0,5.0],'PowerHero':[5.0,5.0,5.0,5.0],'御熹堂':[4.9,4.9,4.9,4.9]},
+    reviews: {'達摩本草':[4612,4612,4612,4608],'毛孩時代':[1816,1816,1816,1815],'PowerHero':[406,406,406,406],'御熹堂':[235,235,235,235]},
+    fresh:   {'達摩本草':'—','毛孩時代':'—','PowerHero':'—','御熹堂':'—'}
+  },
+  sat: {
+    rate: {'達摩本草':[77.27,91.67,81.25,90.90],'毛孩時代':[97.40,92.90,83.33,85.71],'PowerHero':[89.50,88.90,93.80,100],'御熹堂':[95.80,100,100,100]},
+    resp: {'達摩本草':[22,24,32,11],'毛孩時代':[39,42,36,14],'PowerHero':[19,9,16,4],'御熹堂':[24,15,19,8]},
+    sent: {'達摩本草':[1717,1398,2132,1765],'毛孩時代':[307,458,1159,1145],'PowerHero':[75,62,82,58],'御熹堂':[83,65,79,65]}
+  },
+  types: {
+    '達摩本草':{'2026/03':{產品諮詢:301,訂購諮詢:470,查詢訂單:129,會員互動:38,代訂:51,客訴:108,其他:417},'2026/04':{產品諮詢:203,訂購諮詢:287,查詢訂單:96,會員互動:25,代訂:46,客訴:62,其他:194}},
+    '毛孩時代':{'2026/03':{產品諮詢:92,訂購諮詢:66,查詢訂單:66,會員互動:1,代訂:8,客訴:18,其他:23},'2026/04':{產品諮詢:121,訂購諮詢:106,查詢訂單:91,會員互動:2,代訂:7,客訴:32,其他:31}},
+    'PowerHero':{'2026/03':{產品諮詢:26,訂購諮詢:34,查詢訂單:29,會員互動:0,代訂:6,客訴:17,其他:10},'2026/04':{產品諮詢:10,訂購諮詢:30,查詢訂單:16,會員互動:0,代訂:7,客訴:17,其他:14}},
+    '御熹堂':  {'2026/03':{產品諮詢:44,訂購諮詢:38,查詢訂單:21,會員互動:2,代訂:13,客訴:17,其他:10},'2026/04':{產品諮詢:23,訂購諮詢:31,查詢訂單:21,會員互動:1,代訂:9,客訴:12,其他:22}}
+  }
+};
+
+// ── State ──────────────────────────────────────────────────
+let COMPLAINTS = [];
+let filteredC  = [];
+let assigned   = {};
+let progress   = JSON.parse(localStorage.getItem('complProgress')||'{}');
+let cPage      = 1;
+const PAGE_SZ  = 12;
+let charts     = {};
+// Shopee weekly
+const SW_STORES=[
+  {id:'damo',n:'達摩本草',main:true},{id:'mao',n:'毛孩時代',main:true},
+  {id:'ph',n:'PowerHero',main:true},{id:'yu',n:'御熹堂',main:true},
+  {id:'fumu',n:'芙木之光',main:false},{id:'daodao',n:'大島生醫',main:false},
+  {id:'tryme',n:'TRYME',main:false},{id:'kutt',n:'KUTT(原XXS)',main:false},
+  {id:'aopen',n:'奧沛',main:false},{id:'tsa',n:'TSA',main:false},
+  {id:'adv',n:'Advance',main:false},{id:'yaku',n:'Yakupet',main:false}
+];
+const SW_METRICS=[
+  {k:'resp',l:'聯絡回應率 (%)',t:'pct',note:'目標 ≥ 85%'},
+  {k:'pend',l:'打單未完成率 (%)',t:'pct',note:'目標 ≤ 5%'},
+  {k:'late',l:'延遲出貨率 物流失責 (%)',t:'pct',note:'目標 ≤ 3%'},
+  {k:'days',l:'實際出貨天數 (日)',t:'num',note:'目標 ≤ 2日'},
+  {k:'note',l:'備註 / 異常原因',t:'note',note:''}
+];
+let swDB={}, swWkStart=null, swThr={rw:85,rb:75,pb:5,lw:1,lb:3,dw:2,db:3};
+let swAutoSave;
+let APPS_URL = localStorage.getItem('appsUrl') || APPS_URL_DEFAULT;
+let GOOGLE_KEY = localStorage.getItem('googleKey') || '';
+
+// ============================================================
+// HELPERS
+// ============================================================
+const gMI=()=>{const v=document.getElementById('fMonth').value;return v==='all'?null:+v;};
+const gBr=()=>document.getElementById('fBrand').value;
+// 靜態資料只有前4個月，超出範圍回傳 0
+const sum=(a,i)=>i===null?a.slice(0,4).reduce((s,x)=>s+x,0):(a[i]||0);
+const bSum=(obj,br,mi)=>(br==='all'?BRANDS:[br]).reduce((t,b)=>t+sum(obj[b]||[],mi),0);
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function notif(msg,ok=true){const n=document.getElementById('notif');n.textContent=msg;n.style.background=ok?'#166534':'#7f1d1d';n.classList.add('show');setTimeout(()=>n.classList.remove('show'),2800);}
+
+// ============================================================
+// TAB SWITCH
+// ============================================================
+function sw(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['overview','contact','complaint','shopee','platform','routing'][i]===id));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('p-'+id).classList.add('active');
+  if(id==='shopee'&&!swWkStart)initSW();
+}
+
+// ============================================================
+// SYNC ALL
+// ============================================================
+async function syncAll(){
+  const btn=document.getElementById('syncBtn');
+  const pill=document.getElementById('connPill');
+  btn.textContent='⏳ 同步中...'; btn.disabled=true;
+  pill.className='pill pill-pending'; pill.textContent='🟡 同步中';
+  try{
+    const r=await fetch(APPS_URL+'?action=all',{mode:'cors'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    if(j.status==='error')throw new Error(j.message);
+
+    // Load complaints
+    if(j.complaints&&j.complaints.length){
+      COMPLAINTS=j.complaints.map(c=>({
+        date:c.date||'',brand:c.brand||'',src:c.source||'',
+        cat:c.category||'',subCat:c.subCat||'',
+        lv:c.level||'',text:c.content||'',product:c.product||'',
+        followup:c.followup||'',tsaNote:c.tsaNote||'',
+        assignedDept:c.assignedDept||''
+      })).filter(c=>c.brand&&c.cat);
+      // rebuild complaint stats
+      const cc={};COMPLAINTS.forEach(c=>{cc[c.cat]=(cc[c.cat]||0)+1;});
+      Object.assign(D, {complCats: cc});
+    }
+
+    // Load product inquiry
+    if(j.products&&typeof j.products==='object'){
+      PRODUCT_DATA = j.products;
+      const brands = Object.keys(PRODUCT_DATA);
+      // 顯示診斷訊息
+      const dbBar = document.getElementById('piDebugBar');
+      const dbMsg = document.getElementById('piDebugMsg');
+      if(dbBar && dbMsg){
+        if(brands.length===0){
+          dbBar.style.cssText='display:block;margin-bottom:10px;padding:8px 14px;border-radius:8px;font-size:12px;border:1px solid #fca5a5;background:#fef2f2;';
+          dbMsg.innerHTML='⚠️ Apps Script 有回應，但<strong>產品資料是空的</strong>。可能原因：工作表名稱不符或無資料。';
+        } else {
+          dbBar.style.cssText='display:block;margin-bottom:10px;padding:8px 14px;border-radius:8px;font-size:12px;border:1px solid #bbf7d0;background:#f0fdf4;';
+          dbMsg.innerHTML='✅ 產品資料載入成功：' + brands.map(b=>{
+            const mths=Object.keys(PRODUCT_DATA[b]?.monthly||{});
+            const prodCnt=mths.reduce((s,m)=>s+Object.keys(PRODUCT_DATA[b].monthly[m]).length,0);
+            return `<strong>${b}</strong>(${mths.join('、')}，共${prodCnt}筆)`;
+          }).join('　');
+        }
+      }
+      renderProductChart();
+    } else {
+      const dbBar = document.getElementById('piDebugBar');
+      const dbMsg = document.getElementById('piDebugMsg');
+      if(dbBar && dbMsg){
+        dbBar.style.cssText='display:block;margin-bottom:10px;padding:8px 14px;border-radius:8px;font-size:12px;border:1px solid #fca5a5;background:#fef2f2;';
+        dbMsg.innerHTML='❌ Apps Script <strong>未回傳產品資料</strong>（j.products 為空）。請確認 Apps Script 已部署最新版本。';
+      }
+    }
+
+    // Load platform stats
+    if(j.platform&&typeof j.platform==='object'&&!j.platform.note){
+      MONTHS.forEach((m,mi)=>BRANDS.forEach(b=>{
+        const pd=j.platform[m]&&j.platform[m][b];
+        if(!pd)return;
+        if(pd.shopeeRateStart)D.shopee[b][mi]={s:pd.shopeeRateStart,e:pd.shopeeRateEnd};
+        if(pd.googleRating)   D.google.rating[b][mi]=pd.googleRating;
+        if(pd.googleReviews)  D.google.reviews[b][mi]=pd.googleReviews;
+        if(pd.satisfactionRate)D.sat.rate[b][mi]=pd.satisfactionRate;
+        if(pd.satisfactionResp)D.sat.resp[b][mi]=pd.satisfactionResp;
+        if(pd.satisfactionSent)D.sat.sent[b][mi]=pd.satisfactionSent;
+        if(pd.shopeeChats)     D.ch['蝦皮'][b][mi]=pd.shopeeChats;
+      }));
+    }
+
+    filteredC=[...COMPLAINTS];
+    const now=new Date().toLocaleString('zh-TW');
+    document.getElementById('lastSyncLabel').textContent=`即時資料 ｜ 同步：${now} ｜ 客訴 ${COMPLAINTS.length} 筆`;
+    pill.className='pill pill-ok'; pill.textContent='🟢 已連線';
+    notif(`✅ 同步完成！客訴 ${COMPLAINTS.length} 筆`);
+    renderAll();
+  }catch(e){
+    pill.className='pill pill-err'; pill.textContent='🔴 連線失敗';
+    document.getElementById('lastSyncLabel').textContent='同步失敗：'+e.message+'（顯示本機資料）';
+    notif('❌ 同步失敗：'+e.message,false);
+    // fall back to static sample
+    if(!COMPLAINTS.length)loadSampleComplaints();
+    filteredC=[...COMPLAINTS];
+    renderAll();
+  }finally{
+    btn.textContent='🔄 同步資料'; btn.disabled=false;
+  }
+}
+
+function renderAll(){
+  updateAll();
+  try{renderComplPie();}catch(e){}
+  try{renderSeverityChart();}catch(e){}
+  try{renderCatMoM();}catch(e){}
+  try{renderDeptGrid();}catch(e){}
+  try{renderComplTable();}catch(e){}
+  try{renderGooglePanel();}catch(e){}
+  try{renderShopeePanel();}catch(e){}
+  try{renderSatPanel();}catch(e){}
+}
+
+function updateAll(){
+  ['cTrend','cChanPie','cSat','cGoogle','cShopee','cChanTrend','cType','cPhone','cProdTop'].forEach(dc);
+  try{renderKPI();}catch(e){}
+  try{renderTrend();}catch(e){}
+  try{renderChanPie();}catch(e){}
+  try{renderSatBar();}catch(e){}
+  try{renderGoogleBar();}catch(e){}
+  try{renderShopeeBar();}catch(e){}
+  try{renderContactTable();}catch(e){}
+  try{renderChanTrend();}catch(e){}
+  try{renderTypeChart();}catch(e){}
+  try{renderPhoneChart();}catch(e){}
+  try{renderGooglePanel();}catch(e){}
+  try{renderShopeePanel();}catch(e){}
+  try{renderSatPanel();}catch(e){}
+  try{renderProductChart();}catch(e){}
+  // 月份篩選一定要執行到
+  filterCompl();
+  // 分類圓餅圖、等級分布、環比卡片依 filteredC 更新
+  try{renderComplPie();}catch(e){}
+  try{renderSeverityChart();}catch(e){}
+  try{renderCatMoM();}catch(e){}
+}
+
+// ============================================================
+// KPI
+// ============================================================
+function renderKPI(){
+  const mi=gMI(),br=gBr();
+  const total=bSum(D.total,br,mi);
+  const bs=br==='all'?BRANDS:[br], ms=mi===null?[0,1,2,3]:[mi];
+  let sr=0,sc=0; bs.forEach(b=>ms.forEach(m=>{sr+=D.shopee[b][m].e;sc++;}));
+  let sat=0,satc=0; bs.forEach(b=>ms.forEach(m=>{sat+=D.sat.rate[b][m];satc++;}));
+  let gr=0,gc=0;    bs.forEach(b=>ms.forEach(m=>{gr+=D.google.rating[b][m];gc++;}));
+  const prev=mi!==null&&mi>0?bSum(D.total,br,mi-1):null;
+  const tr=prev?((total-prev)/prev*100).toFixed(1):null;
+  const complLv1=(D.complCats?Object.values(D.complCats).reduce((a,b)=>a+b,0):COMPLAINTS.length);
+  // AI回覆率：取有資料的品牌平均
+  let aiVals=[];
+  bs.forEach(b=>ms.forEach(m=>{const v=D.aiRate[b]?.[m];if(v!==null&&v!==undefined)aiVals.push(v);}));
+  const aiAvg=aiVals.length?( aiVals.reduce((a,b)=>a+b,0)/aiVals.length).toFixed(1):null;
+  document.getElementById('kpiGrid').innerHTML=`
+    <div class="kpi c-blue"><div class="kpi-lbl">📞 總進電量</div><div class="kpi-val">${total.toLocaleString()}</div>
+      ${tr?`<div class="kpi-trend ${tr>0?'kpi-up':'kpi-down'}">${tr>0?'▲':'▼'} ${Math.abs(tr)}% 較上月</div>`:'<div class="kpi-sub">累計</div>'}</div>
+    <div class="kpi c-purple"><div class="kpi-lbl">🤖 機器人回覆率</div><div class="kpi-val" style="font-size:${aiAvg?'24px':'18px'}">${aiAvg?aiAvg+'%':'導入中'}</div><div class="kpi-sub">${aiAvg?'AI自動回覆佔比':'AI客服建置中'}</div></div>
+    <div class="kpi ${parseFloat((sr/sc).toFixed(1))<85?'c-red':'c-green'}"><div class="kpi-lbl">🛒 蝦皮回應率</div><div class="kpi-val">${(sr/sc).toFixed(1)}%</div><div class="kpi-sub">月底均值</div></div>
+    <div class="kpi ${sat/satc<80?'c-red':sat/satc<90?'c-orange':'c-green'}"><div class="kpi-lbl">😊 客戶滿意度</div><div class="kpi-val">${(sat/satc).toFixed(1)}%</div><div class="kpi-sub">問卷均值</div></div>
+    <div class="kpi c-green"><div class="kpi-lbl">⭐ Google 評分</div><div class="kpi-val">${(gr/gc).toFixed(1)}</div><div class="kpi-sub">四品牌均值</div></div>
+    <div class="kpi c-red"><div class="kpi-lbl">⚠️ 客訴件數</div><div class="kpi-val">${complLv1.toLocaleString()}</div><div class="kpi-sub">即時資料</div></div>
+  `;
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+function mkChart(id,cfg){dc(id);const c=document.getElementById(id);if(!c)return;charts[id]=new Chart(c.getContext('2d'),cfg);}
+// Register datalabels plugin globally
+Chart.register(ChartDataLabels);
+const SHOPEE_THR = 85;
+const COPTS={responsive:true,plugins:{legend:{position:'top'},datalabels:{display:false}},maintainAspectRatio:true};
+
+// ── 顏色工具：hex → rgba()，避免 Chart.js 4 解析 8 位 hex 不穩定 ──
+function hexRgba(hex,a){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+// 折線圖圖例強制用 borderColor（線色）顯示品牌色，不用透明 fill 色
+function brandLegendLabels(chart){
+  return chart.data.datasets.map((ds,i)=>({
+    text:ds.label,
+    fillStyle:ds.borderColor,
+    strokeStyle:ds.borderColor,
+    lineWidth:2,
+    hidden:!chart.isDatasetVisible(i),
+    datasetIndex:i
+  }));
+}
+
+function renderTrend(){
+  const mi=gMI(),br=gBr(),bs=br==='all'?BRANDS:[br];
+  // 只顯示有資料的月份（靜態資料為前4月）
+  const dataLen=D.total[BRANDS[0]].length;
+  const lbs=mi===null?MONTHS.slice(0,dataLen):[MONTHS[mi]];
+  mkChart('cTrend',{type:'line',data:{labels:lbs,datasets:bs.map(b=>({
+    label:b,
+    data:mi===null?D.total[b]:[D.total[b][mi]],
+    borderColor:BRAND_CLR[b],
+    backgroundColor:hexRgba(BRAND_CLR[b],0.15),
+    tension:.3,fill:true,pointRadius:5,
+    pointBackgroundColor:BRAND_CLR[b],
+    pointBorderColor:'#fff',pointBorderWidth:2
+  }))},options:{...COPTS,scales:{y:{beginAtZero:false}},
+    plugins:{
+      legend:{position:'top',labels:{generateLabels:brandLegendLabels}},
+      datalabels:{display:true,align:'top',anchor:'end',color:'#334155',font:{size:11,weight:'bold'},formatter:v=>v.toLocaleString()}
+    }
+  }});
+}
+function renderChanPie(){
+  const mi=gMI()??3,br=gBr();
+  const chs=['蝦皮','LINE','FB','IG','電話'];
+  const vals=chs.map(c=>bSum(D.ch[c],br,mi));
+  mkChart('cChanPie',{type:'doughnut',data:{labels:chs,datasets:[{data:vals,backgroundColor:['#ee4d2d','#06c755','#1877f2','#e1306c','#64748b'],borderWidth:2}]},options:{...COPTS,cutout:'52%',plugins:{legend:{position:'right'},datalabels:{display:true,color:'white',font:{size:11,weight:'bold'},formatter:(v)=>v>0?v.toLocaleString():''}}}});
+}
+function renderSatBar(){
+  const mi=gMI(),br=gBr(),bs=br==='all'?BRANDS:[br];
+  const dataLen=D.sat.rate[BRANDS[0]].length;
+  const lbs=mi===null?MONTHS.slice(0,dataLen):[MONTHS[mi]];
+  mkChart('cSat',{type:'bar',data:{labels:lbs,datasets:bs.map(b=>({label:b,data:mi===null?D.sat.rate[b]:[D.sat.rate[b][mi]],backgroundColor:hexRgba(BRAND_CLR[b],0.85),borderRadius:4}))},options:{...COPTS,scales:{y:{min:60,max:105}},plugins:{...COPTS.plugins,datalabels:{display:true,anchor:'end',align:'top',color:'#334155',font:{size:10,weight:'bold'},formatter:v=>v+'%'}}}});
+}
+function renderGoogleBar(){
+  const mi=gMI()??3;
+  mkChart('cGoogle',{type:'bar',data:{labels:BRANDS,datasets:[{label:'評論數',data:BRANDS.map(b=>D.google.reviews[b][mi]),backgroundColor:BRANDS.map(b=>hexRgba(BRAND_CLR[b],0.85)),borderRadius:4}]},options:{...COPTS,indexAxis:'y',plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'right',color:'#334155',font:{size:11,weight:'bold'},formatter:v=>v.toLocaleString()}}}});
+}
+function renderShopeeBar(){
+  const mi=gMI()??3,thr=SHOPEE_THR;
+  const vals=BRANDS.map(b=>D.shopee[b][mi].e);
+  mkChart('cShopee',{type:'bar',data:{labels:BRANDS,datasets:[{label:'回應率%',data:vals,backgroundColor:vals.map(v=>v<thr?'rgba(239,68,68,0.85)':v<95?'rgba(245,158,11,0.85)':'rgba(16,185,129,0.85)'),borderRadius:4}]},options:{...COPTS,plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'top',color:'#334155',font:{size:11,weight:'bold'},formatter:v=>v+'%'}},scales:{y:{min:60,max:105,ticks:{callback:v=>v+'%'}}}}});
+}
+function renderChanTrend(){
+  const br=gBr();
+  const cols=['#ee4d2d','#06c755','#1877f2','#e1306c','#64748b'];
+  mkChart('cChanTrend',{type:'line',data:{labels:MONTHS,datasets:['蝦皮','LINE','FB','IG','電話'].map((ch,i)=>({label:ch,data:MONTHS.map((_,m)=>bSum(D.ch[ch],br,m)),borderColor:cols[i],backgroundColor:hexRgba(cols[i],0.1),tension:.3,fill:false,pointRadius:4,pointBackgroundColor:cols[i]}))},options:{...COPTS,plugins:{...COPTS.plugins,datalabels:{display:true,align:'top',anchor:'end',color:'#334155',font:{size:10},formatter:v=>v>0?v.toLocaleString():''}}}});
+}
+function renderTypeChart(){
+  const br=gBr();
+  const bs=br==='all'?BRANDS:[br];
+  const types=['產品諮詢','訂購諮詢','查詢訂單','會員互動','代訂','客訴','其他'];
+  const mths=['2026/03','2026/04'];
+  mkChart('cType',{type:'bar',data:{labels:types,datasets:mths.map((m,mi)=>({label:m,data:types.map(t=>bs.reduce((s,b)=>s+(D.types[b]?.[m]?.[t]||0),0)),backgroundColor:mi===0?'#3b82f6cc':'#10b981cc',borderRadius:4}))},options:{...COPTS,plugins:{...COPTS.plugins,datalabels:{display:true,anchor:'end',align:'top',color:'#334155',font:{size:10},formatter:v=>v>0?v:''}}}});
+}
+function renderPhoneChart(){
+  const br=gBr(),bs=br==='all'?BRANDS:[br];
+  const chs=[
+    {k:'蝦皮', clr:'#ee4d2d'},
+    {k:'LINE',  clr:'#06c755'},
+    {k:'FB',    clr:'#1877f2'},
+    {k:'IG',    clr:'#e1306c'},
+    {k:'電話',  clr:'#64748b'}
+  ];
+  mkChart('cPhone',{type:'bar',data:{labels:MONTHS,datasets:chs.map(c=>({
+    label:c.k,
+    data:MONTHS.map((_,m)=>bs.reduce((s,b)=>s+(D.ch[c.k][b]?.[m]||0),0)),
+    backgroundColor:hexRgba(c.clr,0.85),
+    borderRadius:2,
+    stack:'s'
+  }))},options:{...COPTS,
+    scales:{y:{stacked:true,beginAtZero:true},x:{stacked:true}},
+    plugins:{...COPTS.plugins,
+      legend:{position:'top'},
+      datalabels:{
+        display:(ctx)=>ctx.dataset.dataIndex===ctx.datasetIndex&&ctx.parsed.y>50,
+        anchor:'center',align:'center',color:'white',font:{size:10,weight:'bold'},
+        formatter:v=>v>50?v.toLocaleString():''
+      }
+    }
+  }});
+}
+function renderComplPie(){
+  // 從 filteredC 計算（已依品牌/月份篩選），並忽略 0 筆的分類
+  const cc={};
+  filteredC.forEach(c=>{ const k=normCat(c.cat); if(k) cc[k]=(cc[k]||0)+1; });
+  const active=Object.entries(cc).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  if(!active.length){ dc('cComplPie'); return; }
+  const clrs=['#ef4444','#3b82f6','#f59e0b','#8b5cf6','#10b981','#ec4899','#06b6d4','#84cc16','#f97316','#64748b','#a855f7','#14b8a6'];
+  const labels=active.map(([k])=>k), vals=active.map(([,v])=>v);
+  const total=vals.reduce((a,b)=>a+b,0);
+  mkChart('cComplPie',{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:clrs.slice(0,labels.length),borderWidth:2}]},options:{...COPTS,cutout:'42%',plugins:{legend:{position:'right'},datalabels:{display:true,color:'white',font:{size:11,weight:'bold'},formatter:(v)=>{const pct=(v/total*100).toFixed(1);return pct>4?`${pct}%`:'';}}}}});
+}
+function renderSeverityChart(){
+  const sev={'第一級':filteredC.filter(c=>c.lv==='第一級').length,'第二級':filteredC.filter(c=>c.lv==='第二級').length,'第三級':filteredC.filter(c=>c.lv==='第三級').length,'第四級':filteredC.filter(c=>c.lv==='第四級').length};
+  mkChart('cSeverity',{type:'bar',data:{labels:Object.keys(sev),datasets:[{data:Object.values(sev),backgroundColor:['#dc2626','#ea580c','#ca8a04','#16a34a'],borderRadius:4}]},options:{...COPTS,indexAxis:'y',plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'right',color:'#334155',font:{size:11,weight:'bold'},formatter:v=>v.toLocaleString()}}}});
+}
+
+function renderCatMoM(){
+  const mi = gMI();
+  const section = document.getElementById('catMoMSection');
+  // 只有選擇特定月份且不是第一個月才顯示
+  if(mi === null || mi === 0){ section.style.display='none'; return; }
+  section.style.display='block';
+
+  const br = gBr();
+  const curM  = MONTHS[mi];
+  const prevM = MONTHS[mi-1];
+
+  // 更新標題
+  document.getElementById('catMoMTitle').textContent = `📈 ${curM} 客訴分類 vs ${prevM}`;
+
+  const CATS = Object.keys(DEPT_ROUTE);
+  const norm = m => m.replace(/\/(\d)$/, '/0$1');
+
+  // 從全部資料依品牌篩選，再按月份分組
+  const base = br==='all' ? COMPLAINTS : COMPLAINTS.filter(c=>c.brand===br);
+  const countFor = (month, cat) =>
+    base.filter(c => norm((c.date||'').slice(0,7))===norm(month) && normCat(c.cat)===cat).length;
+
+  const grid = document.getElementById('catMoMGrid');
+  grid.innerHTML = CATS.map(cat => {
+    const cur  = countFor(curM,  cat);
+    const prev = countFor(prevM, cat);
+    if(cur===0 && prev===0) return '';
+
+    let deltaHTML = '';
+    if(prev > 0){
+      const pct = ((cur - prev) / prev * 100).toFixed(0);
+      const up  = cur >= prev;
+      // 客訴增加是壞事，用紅色；減少是好事，用綠色
+      const clr = up ? '#ef4444' : '#10b981';
+      const arrow = up ? '▲' : '▼';
+      deltaHTML = `<div style="font-size:11px;color:${clr};font-weight:700;">${arrow} ${Math.abs(pct)}% vs ${prevM}</div>`;
+    } else if(cur > 0){
+      deltaHTML = `<div style="font-size:11px;color:#94a3b8;">新增分類</div>`;
+    }
+
+    const dept = DEPT_ROUTE[cat];
+    const bgClr = {'品管部':'#eff6ff','倉儲部':'#f0fdf4','採購部':'#fffbeb','客服部':'#fdf4ff','品牌部':'#fce7f3'}[dept?.d]||'#f8fafc';
+    const txClr = {'品管部':'#1d4ed8','倉儲部':'#15803d','採購部':'#b45309','客服部':'#7e22ce','品牌部':'#9d174d'}[dept?.d]||'#475569';
+
+    return `<div style="background:${bgClr};border-radius:10px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+      <div style="font-size:11px;color:${txClr};font-weight:700;margin-bottom:4px;">${dept?.i||''} ${cat}</div>
+      <div style="font-size:22px;font-weight:800;color:#0f172a;line-height:1.1;">${cur.toLocaleString()}</div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:2px;">上月 ${prev} 件</div>
+      ${deltaHTML}
+    </div>`;
+  }).join('');
+}
+
+// setBrand removed — 品牌/月份統一由上方全域篩選控制
+
+// ============================================================
+// CONTACT TABLE
+// ============================================================
+function renderContactTable(){
+  const mi=gMI(),br=gBr(),bs=br==='all'?BRANDS:[br],ms=mi===null?[0,1,2,3]:[mi];
+  let h='';
+  bs.forEach(b=>ms.forEach(m=>{
+    const na=b==='PowerHero'||b==='御熹堂';
+    h+=`<tr>
+      <td><span class="bb ${BRAND_CLS[b]}">${b}</span></td><td>${MONTHS[m]}</td>
+      <td>${(D.ch['蝦皮'][b][m]||0).toLocaleString()}</td>
+      <td>${(D.ch['LINE'][b][m]||0).toLocaleString()}</td>
+      <td>${na?'<span style="color:#94a3b8;font-size:10px">未串接</span>':(D.ch['FB'][b][m]||0).toLocaleString()}</td>
+      <td>${na?'<span style="color:#94a3b8;font-size:10px">未串接</span>':(D.ch['IG'][b][m]||0).toLocaleString()}</td>
+      <td>${(D.ch['電話'][b][m]||0).toLocaleString()}</td>
+      <td>${(D.txt[b][m]||0).toLocaleString()}</td>
+      <td><strong>${(D.total[b][m]||0).toLocaleString()}</strong></td>
+    </tr>`;
+  }));
+  document.getElementById('tContact').innerHTML=h;
+}
+
+// ============================================================
+// DEPT GRID
+// ============================================================
+function renderDeptGrid(){
+  const dc2={};
+  Object.values(DEPT_ROUTE).forEach(r=>{dc2[r.d]=dc2[r.d]||{i:r.i,n:0};});
+  COMPLAINTS.forEach(c=>{const r=DEPT_ROUTE[normCat(c.cat)];if(r)dc2[r.d].n++;});
+  document.getElementById('deptGrid').innerHTML=Object.entries(dc2).map(([d,v])=>`
+    <div class="dept-card" onclick="filterByDept('${d}')">
+      <div class="dept-icon">${v.i}</div>
+      <div class="dept-name">${d}</div>
+      <div class="dept-num">${v.n}</div>
+      <div class="dept-sub">件待指派</div>
+    </div>`).join('');
+}
+function filterByDept(d){
+  sw('complaint');
+  document.getElementById('cCatF').value='';
+  document.getElementById('cSubCatF').innerHTML='<option value="">全部小分類</option>';
+  filteredC=COMPLAINTS.filter(c=>DEPT_ROUTE[normCat(c.cat)]?.d===d);
+  cPage=1; renderComplTable();
+}
+
+// ============================================================
+// COMPLAINT TABLE
+// ============================================================
+function updateSubCatFilter(){
+  const cat = document.getElementById('cCatF').value;
+  const sel = document.getElementById('cSubCatF');
+  sel.innerHTML = '<option value="">全部小分類</option>';
+  if(cat && CAT_SUB[cat]){
+    CAT_SUB[cat].forEach(s=>{
+      const o=document.createElement('option');
+      o.value=o.textContent=s;
+      sel.appendChild(o);
+    });
+  }
+}
+
+function filterCompl(){
+  const q      = document.getElementById('cSearch').value.toLowerCase();
+  const cat    = document.getElementById('cCatF').value;
+  const subCat = document.getElementById('cSubCatF').value;
+  const lv     = document.getElementById('cLvF').value;
+  const br     = document.getElementById('cBrandF').value;
+  const dept   = document.getElementById('cDeptF').value;
+  const stat   = document.getElementById('cStatF').value;
+  // 同步上方全域篩選
+  const gBrand  = gBr();
+  const gMonthI = gMI();
+  const gMonth  = gMonthI!==null ? MONTHS[gMonthI] : null;
+
+  filteredC = COMPLAINTS.filter(c=>{
+    // 全域品牌篩選
+    if(gBrand!=='all' && c.brand!==gBrand) return false;
+    // 全域月份篩選：用 date 欄位前7字元比對（格式 2026/05）
+    if(gMonth){
+      const norm = m => m.replace(/\/(\d)$/, '/0$1'); // 2026/5 → 2026/05
+      const dateM = norm((c.date||'').slice(0,7));
+      if(dateM !== norm(gMonth)) return false;
+    }
+    // 表格內篩選
+    if(q      && !c.text.toLowerCase().includes(q) && !c.brand.includes(q) && !(c.product||'').toLowerCase().includes(q)) return false;
+    if(cat    && c.cat!==cat) return false;
+    if(subCat && (c.subCat||'')!==subCat) return false;
+    if(lv     && c.lv!==lv)  return false;
+    if(br   && c.brand!==br) return false;
+    if(dept){const r=DEPT_ROUTE[normCat(c.cat)];if(!r||r.d!==dept) return false;}
+    if(stat){const pg=progress[complKey(c)];const s=(pg&&pg.status)||'待處理';if(s!==stat) return false;}
+    return true;
+  });
+  cPage=1; renderComplTable();
+}
+
+function complKey(c){
+  // 唯一識別 key，不依賴 index，換頁/篩選後仍正確
+  return `${c.date}|${c.brand}|${c.text.slice(0,20)}`;
+}
+
+const ST_CLS={'待處理':'st-wait','處理中':'st-doing','已完成':'st-done'};
+const ST_ICO={'待處理':'⏳','處理中':'🔄','已完成':'✅'};
+
+function renderComplTable(){
+  document.getElementById('complLoading').style.display='none';
+  document.getElementById('complTable').style.display='';
+  document.getElementById('complCount').textContent=`共 ${filteredC.length} 筆`;
+  const lvc={'第一級':'lv1','第二級':'lv2','第三級':'lv3','第四級':'lv4'};
+  const total=filteredC.length, tp=Math.ceil(total/PAGE_SZ);
+  const items=filteredC.slice((cPage-1)*PAGE_SZ, cPage*PAGE_SZ);
+
+  document.getElementById('tCompl').innerHTML=items.map((c)=>{
+    const key=complKey(c);
+    const safeKey=encodeURIComponent(key);
+    const r=DEPT_ROUTE[normCat(c.cat)]||{d:'客服部',c:'d-客服',i:'📋'};
+    const pg=progress[key]||{status:'待處理',note:'',ts:''};
+    const st=pg.status||'待處理';
+    const stCls=ST_CLS[st]||'st-wait';
+    const noteHtml=st!=='待處理'
+      ?`<textarea class="prog-note" data-key="${safeKey}" placeholder="填寫處理進度..." onchange="saveNote(this)">${pg.note||''}</textarea>`:'';
+    const tsHtml=pg.ts?`<div class="prog-ts">更新：${pg.ts}</div>`:'';
+
+    return `<tr style="${st==='已完成'?'opacity:.65':''}">
+      <td style="white-space:nowrap;font-size:11px;">${c.date}</td>
+      <td><span class="bb ${BRAND_CLS[c.brand]||''}">${c.brand}</span></td>
+      <td><span class="chi ch-${c.src}">${c.src}</span></td>
+      <td style="white-space:nowrap;font-size:11px;">${normCat(c.cat)}</td>
+      <td style="font-size:11px;color:#64748b;white-space:nowrap;">${c.subCat||'—'}</td>
+      <td><span class="badge ${lvc[c.lv]||'lv4'}">${c.lv}</span></td>
+      <td><div class="ctext">${c.text}</div></td>
+      <td style="font-size:11px;color:#64748b;white-space:nowrap;">${c.product||'—'}</td>
+      <td style="font-size:11px;color:#475569;max-width:160px;word-break:break-all;">${c.followup||c.tsaNote||'—'}</td>
+      <td><span class="dept ${r.c}">${r.i} ${r.d}</span></td>
+      <td style="min-width:180px;padding:8px;">
+        <select class="prog-sel ${stCls}" data-key="${safeKey}" onchange="saveStatus(this)">
+          <option value="待處理" ${st==='待處理'?'selected':''}>⏳ 待處理</option>
+          <option value="處理中" ${st==='處理中'?'selected':''}>🔄 處理中</option>
+          <option value="已完成" ${st==='已完成'?'selected':''}>✅ 已完成</option>
+        </select>
+        ${noteHtml}
+        ${tsHtml}
+      </td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="11" style="text-align:center;color:#94a3b8;padding:20px;">無符合資料</td></tr>';
+
+  let pg2=`<span class="pg-info">共 ${total} 筆</span>`;
+  for(let p=Math.max(1,cPage-2);p<=Math.min(tp,cPage+2);p++)
+    pg2+=`<button class="pg-btn ${p===cPage?'act':''}" onclick="cPage=${p};renderComplTable()">${p}</button>`;
+  document.getElementById('complPg').innerHTML=pg2;
+}
+
+function saveStatus(sel){
+  const key=decodeURIComponent(sel.dataset.key);
+  if(!progress[key]) progress[key]={};
+  progress[key].status=sel.value;
+  progress[key].ts=new Date().toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  sel.className='prog-sel '+(ST_CLS[sel.value]||'st-wait');
+  localStorage.setItem('complProgress',JSON.stringify(progress));
+  notif(ST_ICO[sel.value]+' 狀態已更新：'+sel.value);
+  // 重新渲染這一行以顯示/隱藏備註欄
+  renderComplTable();
+}
+
+let noteTimer;
+function saveNote(ta){
+  const key=decodeURIComponent(ta.dataset.key);
+  if(!progress[key]) progress[key]={};
+  progress[key].note=ta.value;
+  progress[key].ts=new Date().toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  clearTimeout(noteTimer);
+  noteTimer=setTimeout(()=>{
+    localStorage.setItem('complProgress',JSON.stringify(progress));
+    notif('💾 備註已儲存');
+  },800);
+}
+
+function doAssign(btn){
+  // 保留相容性
+  const key=decodeURIComponent(btn.dataset.key);
+  const dept=btn.dataset.dept;
+  assigned[key]=true;
+  btn.textContent='✅ 已指派';
+  btn.className='assign-btn done';
+  notif('✅ 已指派至 '+dept);
+}
+
+// ============================================================
+// PLATFORM PANELS
+// ============================================================
+function renderGooglePanel(){
+  const mi=gMI()??3,br=gBr(),bs=br==='all'?BRANDS:[br];
+  document.getElementById('googlePanel').innerHTML=bs.map(b=>{
+    const rt=D.google.rating[b][mi], rv=D.google.reviews[b][mi];
+    const st='★'.repeat(Math.floor(rt))+'☆'.repeat(5-Math.floor(rt));
+    return `<div class="gcard">
+      <h4>${b}</h4>
+      <div class="g-rating">${rt}</div>
+      <div class="g-stars">${st}</div>
+      <div class="g-count">${(rv||0).toLocaleString()} 則評論</div>
+      <div class="g-fresh">Place ID: <code style="font-size:10px;">${PLACE_IDS[b]}</code></div>
+      <div class="g-fresh" id="gfresh-${b.replace(/\s/g,'')}">${D.google.fresh[b]||'—'}</div>
+    </div>`;
+  }).join('');
+}
+function renderShopeePanel(){
+  const mi=gMI()??3,br=gBr(),bs=br==='all'?BRANDS:[br],thr=SHOPEE_THR;
+  document.getElementById('shopeePanel').innerHTML=bs.map(b=>{
+    const r=D.shopee[b][mi],cls=r.e<thr?'bad':r.e<95?'warn':'ok';
+    const arrow=r.e>=r.s?'▲':'▼',aclr=r.e>=r.s?'#10b981':'#ef4444';
+    const pct=Math.min(r.e,100);
+    return `<div class="gcard">
+      <h4>${b}</h4>
+      <div class="srate ${cls}">${r.e}%</div>
+      <div class="sbar-bg"><div class="sbar-fill" style="width:${pct}%;background:${r.e<thr?'#ef4444':r.e<95?'#f59e0b':'#10b981'}"></div></div>
+      <div style="font-size:12px;color:#64748b;margin-top:6px;">
+        月初 ${r.s}% &nbsp;<span style="color:${aclr}">${arrow} ${Math.abs(r.e-r.s).toFixed(2)}%</span>
+      </div>
+      <div style="margin-top:6px;">${r.e<thr?`<span class="badge lv1">⚠️ 低於門檻</span>`:`<span class="badge lv4">✅ 正常</span>`}</div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:4px;">蝦皮聊聊數 ${(D.ch['蝦皮'][b][mi]||0).toLocaleString()} 則</div>
+    </div>`;
+  }).join('');
+}
+function renderSatPanel(){
+  const mi=gMI()??3,br=gBr(),bs=br==='all'?BRANDS:[br];
+  document.getElementById('satPanel').innerHTML=bs.map(b=>{
+    const rt=D.sat.rate[b][mi],rp=D.sat.resp[b][mi],sn=D.sat.sent[b][mi];
+    const rrPct=sn>0?((rp/sn)*100).toFixed(1):0;
+    const clr=rt>=90?'#10b981':rt>=80?'#f59e0b':'#ef4444';
+    return `<div class="gcard">
+      <h4>${b}</h4>
+      <div class="sat-val" style="color:${clr}">${rt}%</div>
+      <div class="sat-bar-bg"><div class="sat-bar-fill" style="width:${Math.min(rt,100)}%;background:${clr}"></div></div>
+      <div style="font-size:12px;color:#64748b;margin-top:8px;">
+        回覆：${rp} 份 ／ 發放：${(sn||0).toLocaleString()} 份<br>
+        回覆率：<strong>${rrPct}%</strong>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// GOOGLE PLACES API (auto-fetch reviews)
+// ============================================================
+async function fetchGoogleReviews(){
+  const key=GOOGLE_KEY||localStorage.getItem('googleKey')||'';
+  if(!key){notif('⚠️ 請在設定中填入 Google Places API 金鑰',false);return;}
+  const mi=gMI()??3;
+  let cnt=0;
+  for(const [brand,pid] of Object.entries(PLACE_IDS)){
+    try{
+      const url=`https://places.googleapis.com/v1/places/${pid}?fields=rating,userRatingCount&key=${key}`;
+      const r=await fetch(url);const j=await r.json();
+      if(j.rating){
+        BRANDS.forEach((_,m)=>{D.google.rating[brand][m]=j.rating;D.google.reviews[brand][m]=j.userRatingCount||0;});
+        D.google.fresh[brand]='更新：'+new Date().toLocaleString('zh-TW');
+        cnt++;
+      }
+    }catch(e){console.warn(brand,e);}
+  }
+  notif(cnt?`✅ 已更新 ${cnt} 個品牌 Google 評論`:'❌ Google API 更新失敗',cnt>0);
+  renderGooglePanel(); renderGoogleBar();
+}
+
+// ============================================================
+// SHOPEE WEEKLY TABLE
+// ============================================================
+function getMonday(d){const dy=d.getDay(),diff=d.getDate()-dy+(dy===0?-6:1);return new Date(new Date(d).setDate(diff));}
+function fmtD(d){return `${d.getMonth()+1}/${d.getDate()}`;}
+function wkKey(d){return d.toISOString().slice(0,10);}
+function wkLabel(mon){const sun=new Date(mon);sun.setDate(mon.getDate()+6);return `${fmtD(mon)}-${fmtD(sun)}`;}
+
+function initSW(){
+  const saved=localStorage.getItem('swDB');if(saved)try{swDB=JSON.parse(saved);}catch(e){}
+  const thr=localStorage.getItem('swThr');if(thr)try{swThr=JSON.parse(thr);}catch(e){}
+  ['tw1','tw2','tw3','tw4','tw5','tw6','tw7'].forEach((id,i)=>{
+    const v=[swThr.rw,swThr.rb,swThr.pb,swThr.lw,swThr.lb,swThr.dw,swThr.db][i];
+    document.getElementById(id).value=v;
+  });
+  swWkStart=getMonday(new Date());
+  renderSW();
+}
+function shiftWk(dir){
+  const d=new Date(swWkStart);d.setDate(d.getDate()+dir*7);swWkStart=getMonday(d);renderSW();
+}
+function getCellCls(k,v){
+  if(v===''||v===null||v===undefined)return '';const n=parseFloat(v);if(isNaN(n))return '';
+  if(k==='resp'){if(n<swThr.rb)return 'bad';if(n<swThr.rw)return 'warn';return 'ok';}
+  if(k==='pend'){if(n>swThr.pb)return 'bad';if(n>0)return 'warn';return 'ok';}
+  if(k==='late'){if(n>swThr.lb)return 'bad';if(n>swThr.lw)return 'warn';return '';}
+  if(k==='days'){if(n>swThr.db)return 'bad';if(n>swThr.dw)return 'warn';return 'ok';}
+  return '';
+}
+function renderSW(){
+  const cur=wkKey(swWkStart);
+  document.getElementById('wkLabel').textContent=`${swWkStart.getFullYear()} / ${wkLabel(swWkStart)}（本週）`;
+  const wks=[];
+  for(let i=-4;i<=0;i++){
+    const d=new Date(swWkStart);d.setDate(d.getDate()+i*7);
+    const m=getMonday(d);wks.push({key:wkKey(m),label:wkLabel(m),now:i===0});
+  }
+  // HEAD
+  let th=`<tr><th style="text-align:left;padding-left:10px;min-width:150px;">賣場 / 指標</th>`;
+  wks.forEach(w=>th+=`<th class="${w.now?'wk-now':''}" style="min-width:110px;">${w.label}${w.now?' ✏️':''}</th>`);
+  th+='</tr>';
+  document.getElementById('swHead').innerHTML=th;
+
+  let tb='',alerts=0;
+  SW_STORES.forEach(st=>{
+    tb+=`<tr class="sw-store-row ${st.main?'':'secondary'}"><td colspan="${wks.length+1}" style="padding:7px 10px;font-weight:700;border-left:3px solid ${st.main?'#ee4d2d':'#10b981'};">
+      🛒 ${st.n}${st.main?'&nbsp;<span style="font-size:10px;background:#ee4d2d;color:white;padding:1px 5px;border-radius:6px;">主品牌</span>':''}
+    </td></tr>`;
+    SW_METRICS.forEach(mt=>{
+      tb+=`<tr><td class="sw-label">${mt.l}<br><span style="font-size:10px;color:#94a3b8;">${mt.note}</span></td>`;
+      wks.forEach(w=>{
+        const ck=`${st.id}_${mt.k}`,val=(swDB[w.key]&&swDB[w.key][ck])||'';
+        const cls=mt.t==='note'?'note-cell':getCellCls(mt.k,val);
+        if(cls==='bad'&&val!=='')alerts++;
+        if(mt.t==='note'){
+          tb+=`<td class="${cls}"><textarea class="sw-note" data-wk="${w.key}" data-ck="${ck}" onchange="swSet(this)" placeholder="${w.now?'備註..':''}" ${!w.now?'readonly':''}>${val}</textarea></td>`;
+        }else{
+          tb+=`<td class="${cls}"><input type="number" step="0.01" class="sw-inp" value="${val}" placeholder="${w.now?'—':''}" data-wk="${w.key}" data-ck="${ck}" data-k="${mt.k}" oninput="swColor(this)" onchange="swSet(this)" ${!w.now?'readonly':''}></td>`;
+        }
+      });
+      tb+='</tr>';
+    });
+  });
+  document.getElementById('swBody').innerHTML=tb;
+  const al=document.getElementById('swAlerts');
+  al.style.display=alerts>0?'inline':'none';
+  al.textContent=`⚠️ ${alerts} 項異常`;
+}
+function swSet(el){
+  const wk=el.dataset.wk,ck=el.dataset.ck;
+  if(!swDB[wk])swDB[wk]={};
+  swDB[wk][ck]=el.value;
+  clearTimeout(swAutoSave);
+  swAutoSave=setTimeout(()=>{
+    localStorage.setItem('swDB',JSON.stringify(swDB));
+    document.getElementById('swSaved').textContent='💾 '+new Date().toLocaleTimeString('zh-TW')+'自動儲存';
+  },600);
+}
+function swColor(el){
+  const k=el.dataset.k;if(!k)return;
+  el.parentElement.className=getCellCls(k,el.value);
+}
+function applyThr(){
+  swThr={rw:+document.getElementById('tw1').value,rb:+document.getElementById('tw2').value,
+    pb:+document.getElementById('tw3').value,lw:+document.getElementById('tw4').value,
+    lb:+document.getElementById('tw5').value,dw:+document.getElementById('tw6').value,
+    db:+document.getElementById('tw7').value};
+  localStorage.setItem('swThr',JSON.stringify(swThr));
+  renderSW();
+}
+function exportShopeeCSV(){
+  const cur=wkKey(swWkStart);let csv='蝦皮週報 '+wkLabel(swWkStart)+'\n賣場,指標,數值,備註\n';
+  SW_STORES.forEach(st=>SW_METRICS.filter(m=>m.t!=='note').forEach(mt=>{
+    const ck=`${st.id}_${mt.k}`,val=(swDB[cur]&&swDB[cur][ck])||'';
+    const nk=`${st.id}_note`,note=(swDB[cur]&&swDB[cur][nk])||'';
+    if(val)csv+=`"${st.n}","${mt.l}","${val}","${note}"\n`;
+  }));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`蝦皮週報_${wkLabel(swWkStart).replace(/\//g,'-')}.csv`;a.click();
+}
+
+// ============================================================
+// PRODUCT INQUIRY
+// ============================================================
+let PRODUCT_DATA = {}; // loaded from Apps Script
+
+function renderProductChart(){
+  // 使用全域品牌篩選；若為「全部」預設顯示達摩本草
+  const hasProdData = Object.keys(PRODUCT_DATA).length > 0;
+  const brand  = (gBr()==='all') ? (hasProdData ? Object.keys(PRODUCT_DATA)[0] : '達摩本草') : gBr();
+  // 將全域月份索引轉換為產品工作表的月份字串（e.g. index 1 → "2月"）
+  const mi     = gMI();
+  const monthStr = mi===null ? null : (mi+1)+'月';
+  const q      = (document.getElementById('piSearch').value||'').trim().toLowerCase();
+  dc('cProdTop');
+
+  // 更新標題顯示
+  const lbl = document.getElementById('piFilterLabel');
+  if(lbl) lbl.textContent = brand + (monthStr ? '・'+monthStr : '・全年');
+
+  // 取得月份資料（null → 加總所有月份）
+  let monthly;
+  if(monthStr){
+    monthly = PRODUCT_DATA[brand]?.monthly?.[monthStr] || {};
+  } else {
+    monthly = {};
+    const allMonthly = PRODUCT_DATA[brand]?.monthly || {};
+    Object.values(allMonthly).forEach(mData=>{
+      Object.entries(mData).forEach(([p,v])=>{ monthly[p]=(monthly[p]||0)+v; });
+    });
+  }
+
+  let entries = Object.entries(monthly).filter(([p,v])=>v>0);
+  if(q) entries = entries.filter(([p])=>p.toLowerCase().includes(q));
+  entries.sort((a,b)=>b[1]-a[1]);
+  const top = entries.slice(0,10);
+
+  const cvs = document.getElementById('cProdTop');
+  const noDataDiv = document.getElementById('piNoData');
+  const noDataMsg = document.getElementById('piNoDataMsg');
+
+  if(!top.length){
+    if(cvs)    cvs.style.display='none';
+    if(noDataDiv) noDataDiv.style.display='';
+    if(noDataMsg){
+      noDataMsg.textContent = !hasProdData
+        ? '尚未載入產品資料'
+        : `${brand}・${monthStr||'全年'} 無詢問度資料`;
+    }
+    document.getElementById('piDetailBody').innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;">無資料</div>';
+    console.warn('[產品詢問度] 無資料 →', {brand, monthStr, hasProdData,
+      keys: PRODUCT_DATA[brand] ? Object.keys(PRODUCT_DATA[brand].monthly||{}) : '(無此品牌)'});
+    return;
+  }
+
+  // 有資料 → 顯示 canvas，隱藏 no-data div
+  if(cvs)    cvs.style.display='';
+  if(noDataDiv) noDataDiv.style.display='none';
+
+  const labels = top.map(([p])=>p);
+  const vals   = top.map(([,v])=>v);
+  const maxV   = vals[0]||1;
+  const clrs   = vals.map(v=>{
+    const r=v/maxV;
+    return r>0.7?BRAND_CLR[brand]+'ee':r>0.4?BRAND_CLR[brand]+'99':BRAND_CLR[brand]+'55';
+  });
+
+  const c = document.getElementById('cProdTop');
+  if(!c) return;
+  charts['cProdTop'] = new Chart(c.getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[{data:vals,backgroundColor:clrs,borderRadius:4,indexAxis:'y'}]},
+    options:{
+      indexAxis:'y',
+      responsive:true,
+      maintainAspectRatio:true,
+      plugins:{
+        legend:{display:false},
+        datalabels:{display:true,anchor:'end',align:'right',color:'#334155',font:{size:11,weight:'bold'},formatter:v=>v}
+      },
+      scales:{x:{beginAtZero:true,grid:{color:'#f1f5f9'}},y:{grid:{display:false}}},
+      onClick:(evt,els)=>{
+        if(!els.length)return;
+        const prod=labels[els[0].index];
+        showProductDetail(brand,monthStr,prod);
+      }
+    }
+  });
+}
+
+function showProductDetail(brand, month, product){
+  document.getElementById('piDetailName').textContent = product;
+  const weekly = PRODUCT_DATA[brand]?.weekly || {};
+
+  // collect weeks (null month → all weeks)
+  const weeks = Object.values(weekly)
+    .filter(w=>month===null||w.month===month)
+    .sort((a,b)=>(a.month+a.week).localeCompare(b.month+b.week));
+
+  if(!weeks.length){
+    document.getElementById('piDetailBody').innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;">無週次資料</div>';
+    return;
+  }
+
+  const rows = weeks.map(w=>{
+    const v = w.products[product]||0;
+    const bar = v>0?`<div style="display:inline-block;width:${Math.min(v*6,120)}px;height:8px;background:${BRAND_CLR[brand]};border-radius:4px;margin-left:6px;vertical-align:middle;"></div>`:'';
+    const wkLabel = month===null ? `${w.month} ${w.week}` : w.week;
+    return `<tr>
+      <td style="padding:6px 8px;color:#64748b;white-space:nowrap;">${wkLabel}</td>
+      <td style="padding:6px 8px;font-weight:700;color:#0f172a;">${v}</td>
+      <td style="padding:6px 4px;">${bar}</td>
+    </tr>`;
+  }).join('');
+
+  const total = weeks.reduce((s,w)=>s+(w.products[product]||0),0);
+  document.getElementById('piDetailBody').innerHTML=`
+    <table style="width:100%;border-collapse:collapse;">
+      <thead><tr>
+        <th style="text-align:left;padding:6px 8px;font-size:11px;color:#94a3b8;border-bottom:1px solid #f1f5f9;">週次</th>
+        <th style="text-align:left;padding:6px 8px;font-size:11px;color:#94a3b8;border-bottom:1px solid #f1f5f9;">次數</th>
+        <th style="border-bottom:1px solid #f1f5f9;"></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr>
+        <td style="padding:8px;font-weight:700;border-top:2px solid #e2e8f0;">月合計</td>
+        <td style="padding:8px;font-weight:900;color:${BRAND_CLR[brand]};font-size:16px;">${total}</td>
+        <td></td>
+      </tr></tfoot>
+    </table>`;
+}
+
+// ============================================================
+// API MODAL
+// ============================================================
+function showApiModal(){document.getElementById('apiModal').classList.add('open');document.getElementById('cfgUrl').value=APPS_URL;document.getElementById('cfgKey').value=GOOGLE_KEY;}
+function closeApiModal(){document.getElementById('apiModal').classList.remove('open');}
+document.getElementById('apiModal').addEventListener('click',e=>{if(e.target===document.getElementById('apiModal'))closeApiModal();});
+function saveAndSync(){
+  APPS_URL=document.getElementById('cfgUrl').value.trim()||APPS_URL_DEFAULT;
+  GOOGLE_KEY=document.getElementById('cfgKey').value.trim();
+  localStorage.setItem('appsUrl',APPS_URL);
+  localStorage.setItem('googleKey',GOOGLE_KEY);
+  closeApiModal();
+  syncAll();
+}
+
+// ============================================================
+// FALLBACK SAMPLE
+// ============================================================
+function loadSampleComplaints(){
+  COMPLAINTS=[
+    {date:'2026/1/2',brand:'達摩本草',src:'LINE',cat:'系統/金流',subCat:'付款方式詢問',lv:'第四級',text:'請問你們現在是不能使用Line pay付款嗎？',product:'',followup:''},
+    {date:'2026/1/2',brand:'達摩本草',src:'fb',cat:'產品疑慮',subCat:'效果不明顯',lv:'第四級',text:'我覺得效果還好，買了7盒剩下五盒沒吃',product:'山苦瓜',followup:''},
+    {date:'2026/1/2',brand:'達摩本草',src:'LINE',cat:'行銷活動',subCat:'折扣/活動問題',lv:'第四級',text:'帳戶內又沒有300折抵金額，各店家賣的價格都不一樣差別在哪裡？',product:'',followup:''},
+    {date:'2026/1/2',brand:'達摩本草',src:'LINE',cat:'產品疑慮',lv:'第三級',text:'UC2顏色較淺色，第一次買的顏色較黃而且有點苦苦的',product:'UC-II',followup:''},
+    {date:'2026/1/2',brand:'達摩本草',src:'來電',cat:'出貨速度',lv:'第三級',text:'出貨速度太久',product:'',followup:''},
+    {date:'2026/1/5',brand:'達摩本草',src:'蝦皮',cat:'客戶服務',lv:'第三級',text:'物流司機按了門鈴，沒等到人應聲就將貨物放在門口直接離開',product:'',followup:''},
+    {date:'2026/1/5',brand:'毛孩時代',src:'LINE',cat:'系統問題',lv:'第四級',text:'請問購買飼料沒有貨到付款嗎？',product:'',followup:'官網目前僅有宅配可以到付'},
+    {date:'2026/1/5',brand:'御熹堂',src:'LINE',cat:'訂單問題',lv:'第三級',text:'我只收到一件包裹，裡面沒有大紅趜跟葉黃素',product:'葉黃素/益固醇',followup:''},
+    {date:'2026/1/6',brand:'達摩本草',src:'LINE',cat:'訂單問題',lv:'第三級',text:'我記得我有跟網購的姐姐說我肉桂過敏，但還是有兩包苦瓜胜肽膠囊',product:'',followup:''},
+    {date:'2026/1/6',brand:'PowerHero',src:'LINE',cat:'系統問題',lv:'第三級',text:'我平常買東西都可以為什麼到您這就LINE PAY付款有問題',product:'',followup:''},
+    {date:'2026/1/6',brand:'毛孩時代',src:'蝦皮',cat:'產品瑕疵',lv:'第三級',text:'魚的飼料夾鏈的地方是否是有瑕疵，每包都不能用夾鏈封起來',product:'80%鮮魚肉無穀全貓糧',followup:'夾鏈袋異常進行補寄'},
+    {date:'2026/1/6',brand:'御熹堂',src:'蝦皮',cat:'產品瑕疵',lv:'第一級',text:'你們的瓶蓋真的會割手',product:'益固醇紅麴納豆Q10',followup:''},
+    {date:'2026/1/7',brand:'達摩本草',src:'LINE',cat:'包裝問題',lv:'第三級',text:'在電商購買的好敏通，其中一盒未拆開就發現有一根頭髮',product:'好敏通',followup:''},
+    {date:'2026/1/7',brand:'毛孩時代',src:'蝦皮',cat:'產品疑慮',lv:'第三級',text:'85%鮮雞肉無穀全貓糧這款問味道很重甚至到覺得臭是正常的嗎？',product:'鮮雞肉無穀全貓糧',followup:'告知希望協助回收進一步確認，走換貨'},
+    {date:'2026/1/8',brand:'達摩本草',src:'LINE',cat:'訂單問題',lv:'第三級',text:'苦瓜胜肽有買90顆送10顆，為何收到貨後沒有贈送的物品？',product:'',followup:''},
+    {date:'2026/1/9',brand:'達摩本草',src:'LINE',cat:'客戶服務',lv:'第四級',text:'可以不要再電話行銷嗎？很困擾，請幫我註銷會員資格',product:'',followup:''},
+    {date:'2026/1/12',brand:'達摩本草',src:'LINE',cat:'產品疑慮',lv:'第三級',text:'請問食用時內容物裡有這個綠色的異物是？',product:'好敏通',followup:''},
+    {date:'2026/1/12',brand:'毛孩時代',src:'LINE',cat:'包裝問題',lv:'第三級',text:'最後一盒心臟保健粉裡面夾雜了5包情緒的產品',product:'心臟保健粉',followup:'致歉安排換貨，並告知希望回收進一步確認包裝問題'},
+  ];
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded',()=>{
+  APPS_URL=localStorage.getItem('appsUrl')||APPS_URL_DEFAULT;
+  GOOGLE_KEY=localStorage.getItem('googleKey')||'';
+  loadSampleComplaints();
+  filteredC=[...COMPLAINTS];
+  updateAll();
+  renderComplPie(); renderSeverityChart(); renderDeptGrid(); renderComplTable();
+  renderGooglePanel(); renderShopeePanel(); renderSatPanel();
+  renderProductChart();
+  // Auto-sync on load
+  syncAll();
+});
+</script>
+</body>
+</html>
