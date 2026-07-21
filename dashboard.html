@@ -23,6 +23,7 @@ body{font-family:'Microsoft JhengHei',Arial,sans-serif;background:#f1f5f9;color:
 a{color:inherit;text-decoration:none;}
 
 /* ── HEADER ── */
+.stickybar{position:sticky;top:0;z-index:200;box-shadow:0 4px 10px rgba(0,0,0,.08);}
 .hd{background:var(--primary);color:white;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.3);}
 .hd-title{font-size:18px;font-weight:700;}
 .hd-sub{font-size:11px;opacity:.55;margin-top:2px;}
@@ -247,6 +248,8 @@ td.note-cell{background:#fef9c3;}
 
 <div class="notif" id="notif"></div>
 
+<!-- ===== STICKY 固定區（表頭＋篩選＋分頁）===== -->
+<div class="stickybar">
 <!-- ===== HEADER ===== -->
 <div class="hd">
   <div>
@@ -327,6 +330,7 @@ td.note-cell{background:#fef9c3;}
   <div class="tab"         onclick="sw('platform')">⭐ 平台數據</div>
   <div class="tab"         onclick="sw('routing')">📋 指派規則</div>
 </div>
+</div><!-- /stickybar -->
 
 <!-- ====================================================
      TAB: 總覽
