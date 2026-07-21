@@ -314,6 +314,7 @@ td.note-cell{background:#fef9c3;}
       <option value="處理中">🔄 處理中</option>
       <option value="已完成">✅ 已完成</option>
     </select>
+    <button onclick="batchCloseCompl()" title="把目前篩選出來的客訴全部標為已完成" style="padding:5px 12px;border:1px solid #059669;background:#059669;color:#fff;border-radius:6px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;">✅ 批次結案</button>
   </span>
 </div>
 
@@ -1203,6 +1204,27 @@ function saveStatus(sel){
   localStorage.setItem('complProgress',JSON.stringify(progress));
   notif(ST_ICO[sel.value]+' 狀態已更新：'+sel.value);
   // 重新渲染這一行以顯示/隱藏備註欄
+  renderComplTable();
+}
+
+function batchCloseCompl(){
+  // 把目前篩選出來的客訴（filteredC）全部標為已完成
+  const targets=filteredC.filter(c=>{
+    const pg=progress[complKey(c)];
+    return !pg || pg.status!=='已完成';   // 已完成的略過
+  });
+  if(!filteredC.length){notif('⚠️ 目前沒有客訴可結案',false);return;}
+  if(!targets.length){notif('✅ 篩選結果已全部結案',true);return;}
+  if(!confirm(`確定要把目前篩選出來的 ${targets.length} 筆客訴全部標記為「已完成」嗎？\n（已完成的不受影響，此動作可再逐筆改回）`))return;
+  const ts=new Date().toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  targets.forEach(c=>{
+    const key=complKey(c);
+    if(!progress[key])progress[key]={};
+    progress[key].status='已完成';
+    progress[key].ts=ts;
+  });
+  localStorage.setItem('complProgress',JSON.stringify(progress));
+  notif(`✅ 已將 ${targets.length} 筆客訴標記為已完成`,true);
   renderComplTable();
 }
 
