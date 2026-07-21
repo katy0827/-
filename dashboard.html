@@ -561,6 +561,9 @@ td.note-cell{background:#fef9c3;}
 // CONSTANTS
 // ============================================================
 const APPS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwCUpxTPJRWVMi6_UL_oykv5_CAvjdMf25N6WWwar3ETidhQIf-1ilrQ0DElaPPUs51vA/exec';
+// Google Places API 金鑰預設值（此金鑰已在 Google Cloud 設「網站來源限制」＝只允許 katy0827.github.io，
+// 故公開在此 repo 也無法被盜用）。若日後換金鑰，把引號中間的字串換掉即可，不必再進「設定」重填。
+const GOOGLE_KEY_DEFAULT = 'AIzaSyCt_FVEm_GSU5mmwDsAgQ9UBnfmjeam1oU';
 const PLACE_IDS = {
   '達摩本草':'ChIJcaQYTMypQjQR2hxTe5S0T0Y',
   '毛孩時代':'ChIJwdGqMFapQjQRAsl6i6n-SIc',
@@ -678,7 +681,7 @@ const SW_METRICS=[
 let swDB={}, swWkStart=null, swThr={rw:85,rb:75,pb:5,lw:1,lb:3,dw:2,db:3};
 let swAutoSave;
 let APPS_URL = localStorage.getItem('appsUrl') || APPS_URL_DEFAULT;
-let GOOGLE_KEY = localStorage.getItem('googleKey') || '';
+let GOOGLE_KEY = localStorage.getItem('googleKey') || (GOOGLE_KEY_DEFAULT.startsWith('AIza') ? GOOGLE_KEY_DEFAULT : '');
 
 // ============================================================
 // HELPERS
@@ -1748,7 +1751,7 @@ function loadSampleComplaints(){
 // ============================================================
 document.addEventListener('DOMContentLoaded',()=>{
   APPS_URL=localStorage.getItem('appsUrl')||APPS_URL_DEFAULT;
-  GOOGLE_KEY=localStorage.getItem('googleKey')||'';
+  GOOGLE_KEY=localStorage.getItem('googleKey')||(GOOGLE_KEY_DEFAULT.startsWith('AIza')?GOOGLE_KEY_DEFAULT:'');
   loadSampleComplaints();
   filteredC=[...COMPLAINTS];
   updateAll();
