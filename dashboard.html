@@ -491,7 +491,6 @@ td.note-cell{background:#fef9c3;}
       <thead>
         <tr style="background:#f1f5f9;">
           <th style="text-align:left;padding:8px 10px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap;">賣場</th>
-          <th style="padding:8px 6px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap;">狀態</th>
           <th style="padding:8px 6px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap;">聊聊回應率<br><span style="font-weight:400;color:#94a3b8;">≥90% 🟢 ≥70% 🟡</span></th>
           <th style="padding:8px 6px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap;">訂單未完成%<br><span style="font-weight:400;color:#94a3b8;">&lt;1% 🟢 &lt;5% 🟡</span></th>
           <th style="padding:8px 6px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap;">延遲出貨%<br><span style="font-weight:400;color:#94a3b8;">&lt;1% 🟢 &lt;5% 🟡</span></th>
@@ -1699,8 +1698,6 @@ function renderShopeeOpsGrid(storesOverride, dateOverride, readOnly){
 
   const rows = stores.map((s,i)=>{
     const bg = i%2===0 ? 'white' : '#fafafa';
-    const stClr = s.status==='很好' ? '#059669' : '#d97706';
-    const stBg  = s.status==='很好' ? '#f0fdf4' : '#fffbeb';
     const noteCell = readOnly
       ? `<td style="padding:7px 8px;border-bottom:1px solid #f1f5f9;font-size:11px;color:#64748b;">${s.note||'—'}</td>`
       : `<td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;">
@@ -1710,9 +1707,6 @@ function renderShopeeOpsGrid(storesOverride, dateOverride, readOnly){
         </td>`;
     return `<tr style="background:${bg};">
       <td style="padding:7px 10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;font-weight:600;color:#334155;font-size:13px;">${s.name}</td>
-      <td style="padding:7px 8px;text-align:center;border-bottom:1px solid #f1f5f9;">
-        <span style="background:${stBg};color:${stClr};font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">${s.status}</span>
-      </td>
       ${cell(s.chat,        v=>v>=90, '%', v=>v>=70)}
       ${cell(s.unfulfilled, v=>v<1,   '%', v=>v<5)}
       ${cell(s.late,        v=>v<1,   '%', v=>v<5)}
@@ -1725,9 +1719,9 @@ function renderShopeeOpsGrid(storesOverride, dateOverride, readOnly){
 
 function exportShopeeOpsCSV(){
   const data = loadShopeeOps();
-  let csv = '蝦皮營運表現 ' + (data.date||'') + '\n賣場,狀態,聊聊回應率%,訂單未完成%,延遲出貨%,實際出貨天數(日),備註\n';
+  let csv = '蝦皮營運表現 ' + (data.date||'') + '\n賣場,聊聊回應率%,訂單未完成%,延遲出貨%,實際出貨天數(日),備註\n';
   (data.stores||[]).forEach(s=>{
-    csv += `"${s.name}","${s.status}","${s.chat??''}","${s.unfulfilled??''}","${s.late??''}","${s.days??''}","${(s.note||'').replace(/"/g,'""')}"\n`;
+    csv += `"${s.name}","${s.chat??''}","${s.unfulfilled??''}","${s.late??''}","${s.days??''}","${(s.note||'').replace(/"/g,'""')}"\n`;
   });
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
