@@ -88,6 +88,34 @@ a{color:inherit;text-decoration:none;}
 .bb-mao{background:var(--mao-l);color:var(--mao);}
 .bb-ph{background:var(--ph-l);color:var(--ph);}
 .bb-yu{background:var(--yu-l);color:var(--yu);}
+
+/* ── COMPLAINT TABLE REDESIGN ── */
+#complTable{border-collapse:collapse;width:100%;}
+#complTable thead th{font-size:10px;font-weight:700;color:#64748b;letter-spacing:.05em;padding:7px 9px;border-bottom:2px solid #e2e8f0;white-space:nowrap;background:#f8fafc;}
+#complTable td{padding:7px 9px;vertical-align:middle;font-size:12px;line-height:1.5;color:#1e293b;}
+#complTable .cell-wrap{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;max-width:170px;}
+#complTable .cell-sm{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;max-width:130px;font-size:11px;color:#64748b;}
+#complTable td.lv-stripe{width:4px;padding:0;border:none;}
+#complTable tr.slv1 td.lv-stripe{background:#E24B4A;}
+#complTable tr.slv2 td.lv-stripe{background:#EF9F27;}
+#complTable tr.slv3 td.lv-stripe{background:#639922;}
+#complTable tr.slv4 td.lv-stripe{background:#B4B2A9;}
+#complTable tr.cr-damo td{background:#dce9f8;border-bottom:0.5px solid #b8d3f0;}
+#complTable tr.cr-mao  td{background:#d9f5f5;border-bottom:0.5px solid #a0e0e0;}
+#complTable tr.cr-ph   td{background:#f0f0f0;border-bottom:0.5px solid #d8d8d8;}
+#complTable tr.cr-yu   td{background:#fde8e6;border-bottom:0.5px solid #f5c5c0;}
+#complTable tr.cr-ina  td{background:#fce8f3;border-bottom:0.5px solid #f0c0da;}
+#complTable tr.cr-oshi td{background:#fef0e6;border-bottom:0.5px solid #f5d0b0;}
+#complTable tr.cr-tryme td{background:#eaf3de;border-bottom:0.5px solid #c5dfa0;}
+#complTable tr.cr-tsa  td{background:#e6f1fb;border-bottom:0.5px solid #b5d4f4;}
+#complTable tr.cr-adv  td{background:#f5f0fd;border-bottom:0.5px solid #d9c5f5;}
+#complTable tr.cr-yaku td{background:#faeeda;border-bottom:0.5px solid #f0d090;}
+#complTable tr.cr-kutt td{background:#f0f5e8;border-bottom:0.5px solid #c8dba0;}
+#complTable tr.cr-other td{background:#f8fafc;border-bottom:0.5px solid #e2e8f0;}
+#complTable .cat-sub{font-size:10px;color:#94a3b8;margin-top:2px;}
+.btn-send-report{padding:5px 14px;background:#0f766e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-send-report:hover{background:#0d6460;}
+.btn-send-report:disabled{background:#94a3b8;cursor:not-allowed;}
 .brand-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
 .btag{padding:5px 14px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;border:2px solid transparent;transition:all .2s;}
 .btag.all{background:#f1f5f9;color:#475569;}
@@ -411,12 +439,14 @@ td.note-cell{background:#fef9c3;}
     <div class="ccard"><h3>🚨 客訴等級分布</h3><canvas id="cSeverity"></canvas></div>
   </div>
   <div class="tcard">
-    <div class="thead2">
+    <div class="thead2" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
       <h3>⚠️ 客訴紀錄（即時）<span id="complCount" style="font-size:11px;color:#94a3b8;margin-left:6px;"></span></h3>
+      <button class="btn-send-report" id="btnSendReport" onclick="sendWeeklyReport()">📤 發送週報給各部門</button>
     </div>
     <div id="complLoading" class="loading"><div class="spin"></div>載入客訴資料中...</div>
     <table id="complTable" style="display:none">
       <thead><tr>
+        <th style="width:4px;padding:0;"></th>
         <th>日期</th><th>品牌</th><th>來源</th><th>大分類</th><th>小分類</th><th>等級</th>
         <th>客訴內容</th><th>產品</th><th>案件後續處理</th><th>指派部門</th><th style="min-width:200px;">進度 / 備註</th>
       </tr></thead>
@@ -589,6 +619,30 @@ const DEPT_ROUTE = {
   '客服品質':{d:'客服部',  c:'d-客服', i:'📋'},
   '服務需求':{d:'客服部',  c:'d-客服', i:'💬'}
 };
+
+const BRAND_ROW_CLS = {
+  '達摩本草':'cr-damo','毛孩時代':'cr-mao','PowerHero':'cr-ph','御熹堂':'cr-yu',
+  '芙木之光':'cr-ina','大島生醫':'cr-oshi','TRYME':'cr-tryme','TSA':'cr-tsa',
+  'Advance':'cr-adv','ADVANCE愛旺斯':'cr-adv','Yakupet':'cr-yaku','優固倍Yakupet':'cr-yaku',
+  'KUTT':'cr-kutt','奧沛':'cr-other','奧沛OurPet':'cr-other',
+};
+const LV_ROW_CLS = {'第一級':'slv1','第二級':'slv2','第三級':'slv3','第四級':'slv4'};
+
+const _CS_HOOK = 'https://chat.googleapis.com/v1/spaces/AAQAnG4fsyY/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=ZHAo46uz-s6-IuPhpu6HO2JnZsWYERkuKs8Uz9PQC88';
+const SEND_CONFIG = {
+  '達摩本草':{ qcHook:'https://chat.googleapis.com/v1/spaces/AAQAIrExArk/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=0ZtBM81q8tCJdW9-x0FnpSKs42BHbEbfJQf-X8v8Jpo', qcNames:['Aida'], purNames:['Katy'], csHook:_CS_HOOK, csNames:['Katy'] },
+  '毛孩時代':{ qcHook:'https://chat.googleapis.com/v1/spaces/AAQAnWXb01Y/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=ZYFAMUYLtcWGD9AhfTmhH6Fxk6PiT2dA5wzYMwH9nFk', qcNames:['Katy'], purNames:['Aida'], csHook:_CS_HOOK, csNames:['Will'] },
+  'PowerHero':{ csHook:_CS_HOOK, csNames:['Barney'] },
+  '御熹堂':  { csHook:_CS_HOOK, csNames:['Barney'] },
+  '芙木之光':{ csHook:_CS_HOOK, csNames:['Will'] },
+  '大島生醫':{ csHook:_CS_HOOK, csNames:['Barney'] },
+  'TRYME':   { csHook:_CS_HOOK, csNames:['Will'] },
+  'TSA':     { csHook:_CS_HOOK, csNames:['Katy'] },
+  'Advance': { csHook:_CS_HOOK, csNames:['Katy'] },
+  'Yakupet': { csHook:_CS_HOOK, csNames:['Will'] },
+};
+const WAREHOUSE_SHEET_ID = '1Q8Z2uYWzIh5RYBTuhGyObr9oqotkS8pcg_V492fMkaw';
+const WAREHOUSE_USER = '客服系統';
 
 // 舊版大分類 → 新版對應（讓歷史資料仍能正確顯示部門/顏色）
 const OLD_CAT_MAP = {
@@ -1170,16 +1224,19 @@ function renderComplTable(){
       ?`<textarea class="prog-note" data-key="${safeKey}" placeholder="填寫處理進度..." onchange="saveNote(this)">${pg.note||''}</textarea>`:'';
     const tsHtml=pg.ts?`<div class="prog-ts">更新：${pg.ts}</div>`:'';
 
-    return `<tr style="${st==='已完成'?'opacity:.65':''}">
-      <td style="white-space:nowrap;font-size:11px;">${c.date}</td>
+    const brCls = BRAND_ROW_CLS[c.brand]||'cr-other';
+    const lvCls = LV_ROW_CLS[c.lv]||'';
+    return `<tr class="${brCls} ${lvCls}" style="${st==='已完成'?'opacity:.6':''}">
+      <td class="lv-stripe"></td>
+      <td style="white-space:nowrap;font-size:11px;color:#64748b;">${c.date}</td>
       <td><span class="bb ${BRAND_CLS[c.brand]||''}">${c.brand}</span></td>
       <td><span class="chi ch-${c.src}">${c.src}</span></td>
-      <td style="white-space:nowrap;font-size:11px;">${normCat(c.cat)}</td>
+      <td style="font-size:12px;white-space:nowrap;">${normCat(c.cat)}</td>
       <td style="font-size:11px;color:#64748b;white-space:nowrap;">${c.subCat||'—'}</td>
       <td><span class="badge ${lvc[c.lv]||'lv4'}">${c.lv}</span></td>
-      <td><div class="ctext">${c.text}</div></td>
-      <td style="font-size:11px;color:#64748b;white-space:nowrap;">${c.product||'—'}</td>
-      <td style="font-size:11px;color:#475569;max-width:160px;word-break:break-all;">${c.followup||c.tsaNote||'—'}</td>
+      <td><div class="cell-wrap">${c.text}</div></td>
+      <td><div class="cell-sm">${c.product||'—'}</div></td>
+      <td><div class="cell-sm">${c.followup||c.tsaNote||'—'}</div></td>
       <td><span class="dept ${r.c}">${r.i} ${r.d}</span></td>
       <td style="min-width:180px;padding:8px;">
         <select class="prog-sel ${stCls}" data-key="${safeKey}" onchange="saveStatus(this)">
@@ -1230,6 +1287,90 @@ function batchCloseCompl(){
   localStorage.setItem('complProgress',JSON.stringify(progress));
   notif(`✅ 已將 ${targets.length} 筆客訴標記為已完成`,true);
   renderComplTable();
+}
+
+async function sendWeeklyReport(){
+  const btn = document.getElementById('btnSendReport');
+  const active = COMPLAINTS.filter(c=>{
+    const st = (progress[complKey(c)]||{}).status||'待處理';
+    return st !== '已完成';
+  });
+  if(!active.length){ notif('⚠️ 目前沒有待處理或處理中的客訴',false); return; }
+
+  btn.disabled = true; btn.textContent = '⏳ 發送中...';
+  const today = new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'});
+  const lvLabel = {'第一級':'🔴','第二級':'🟠','第三級':'🟡','第四級':'⚪'};
+
+  // 格式化單筆客訴為文字
+  function fmtLine(c){
+    const lv = lvLabel[c.lv]||'⚪';
+    return `${lv} *${c.brand}*｜${normCat(c.cat)}${c.subCat?'／'+c.subCat:''}｜${c.date}\n　${c.text}${c.product?'\n　產品：'+c.product:''}${(c.followup||c.tsaNote)?'\n　後續：'+(c.followup||c.tsaNote):''}`;
+  }
+
+  // 依品牌分組
+  const byBrand = {};
+  active.forEach(c=>{ (byBrand[c.brand]||(byBrand[c.brand]=[])).push(c); });
+
+  let sentCount=0, warehouseCount=0;
+  const errors=[];
+
+  // 品保/採購 發送（達摩本草、毛孩時代）
+  const QC_DEPTS = ['品管部','採購部'];
+  const qcBrands = {};
+  active.filter(c=>QC_DEPTS.includes((DEPT_ROUTE[normCat(c.cat)]||{}).d))
+    .forEach(c=>{ const cfg=SEND_CONFIG[c.brand]; if(cfg?.qcHook){ (qcBrands[c.brand]||(qcBrands[c.brand]=[])).push(c); } });
+
+  for(const [brand, cases] of Object.entries(qcBrands)){
+    const cfg = SEND_CONFIG[brand];
+    const names = [...(cfg.qcNames||[]),...(cfg.purNames||[])].join('、');
+    const body = `📋 *客訴通知 — 品保／採購*（${today}）\n請 ${names} 確認以下 ${cases.length} 筆：\n\n`+cases.map(fmtLine).join('\n\n');
+    try{
+      await fetch(cfg.qcHook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:body})});
+      sentCount++;
+    }catch(e){ errors.push(`品保 ${brand}: ${e.message}`); }
+  }
+
+  // 客服 發送（依品牌分給各負責人，全送到同一個群）
+  const csCases = active.filter(c=>{
+    const d=(DEPT_ROUTE[normCat(c.cat)]||{}).d||'客服部';
+    return d==='客服部';
+  });
+  if(csCases.length){
+    // 依負責人分組
+    const byPerson = {};
+    csCases.forEach(c=>{
+      const names = (SEND_CONFIG[c.brand]?.csNames||['客服']).join('、');
+      (byPerson[names]||(byPerson[names]=[])).push(c);
+    });
+    const lines = Object.entries(byPerson).map(([person,cases])=>
+      `👤 *${person}* 負責（${cases.length} 筆）：\n`+cases.map(fmtLine).join('\n\n')
+    ).join('\n\n─────────\n\n');
+    const body = `💬 *客訴週報 — 客服部*（${today}）\n\n${lines}`;
+    try{
+      await fetch(_CS_HOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:body})});
+      sentCount++;
+    }catch(e){ errors.push('客服群: '+e.message); }
+  }
+
+  // 倉儲 寫入 Google Sheet
+  const warehouseCases = active.filter(c=>(DEPT_ROUTE[normCat(c.cat)]||{}).d==='倉儲部');
+  for(const c of warehouseCases){
+    const row=[today, WAREHOUSE_USER, c.src, c.order||'', c.name||'',
+               '','','','','','','','','','','','',
+               c.text+(c.followup?'｜'+c.followup:'')];
+    try{
+      await fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'warehouse',sheetId:WAREHOUSE_SHEET_ID,row})});
+      warehouseCount++;
+    }catch(e){ errors.push('倉儲Sheet: '+e.message); }
+  }
+
+  btn.disabled = false; btn.textContent = '📤 發送週報給各部門';
+  if(errors.length){
+    notif('⚠️ 部分發送失敗：'+errors.join('、'), false);
+  } else {
+    notif(`✅ 發送完成！Chat ${sentCount} 則｜倉儲登記 ${warehouseCount} 筆`, true);
+  }
 }
 
 let noteTimer;
