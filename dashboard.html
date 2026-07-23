@@ -641,7 +641,7 @@ const SEND_CONFIG = {
   'Advance': { csHook:_CS_HOOK, csNames:['Katy'] },
   'Yakupet': { csHook:_CS_HOOK, csNames:['Will'] },
 };
-const WAREHOUSE_SHEET_ID = '1Q8Z2uYWzIh5RYBTuhGyObr9oqotkS8pcg_V492fMkaw';
+const WAREHOUSE_URL = 'https://script.google.com/macros/s/AKfycbydOjqSSBTJo-1gCLOdpkvgL3AQDpIF4f7-VZgoiCaSrXBKPJRZ4xEeeN3C_bqC33pf/exec';
 const WAREHOUSE_USER = '客服系統';
 
 // 舊版大分類 → 新版對應（讓歷史資料仍能正確顯示部門/顏色）
@@ -1359,8 +1359,8 @@ async function sendWeeklyReport(){
                '','','','','','','','','','','','',
                c.text+(c.followup?'｜'+c.followup:'')];
     try{
-      await fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'warehouse',sheetId:WAREHOUSE_SHEET_ID,row})});
+      await fetch(WAREHOUSE_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({row})});
       warehouseCount++;
     }catch(e){ errors.push('倉儲Sheet: '+e.message); }
   }
