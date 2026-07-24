@@ -20,6 +20,8 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Microsoft JhengHei',Arial,sans-serif;background:#f1f5f9;color:#1e293b;font-size:13px;}
+/* compensate for Windows DPI scaling absent on web deployments */
+body.web-zoom{zoom:1.25;}
 a{color:inherit;text-decoration:none;}
 
 /* ── HEADER ── */
@@ -1951,6 +1953,7 @@ function loadSampleComplaints(){
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded',()=>{
+  if(!location.protocol.startsWith('file')) document.body.classList.add('web-zoom');
   APPS_URL=localStorage.getItem('appsUrl')||APPS_URL_DEFAULT;
   GOOGLE_KEY=localStorage.getItem('googleKey')||(GOOGLE_KEY_DEFAULT.startsWith('AIza')?GOOGLE_KEY_DEFAULT:'');
   loadSampleComplaints();
