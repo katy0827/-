@@ -378,6 +378,7 @@ td.note-cell{background:#fef9c3;}
     <div class="ccard"><h3>😊 客戶滿意度 (%)</h3><canvas id="cSat"></canvas></div>
     <div class="ccard"><h3>⭐ Google 評論數</h3><canvas id="cGoogle"></canvas></div>
     <div class="ccard"><h3>🛒 蝦皮聊聊回應率（月底）</h3><canvas id="cShopee"></canvas></div>
+    <div class="ccard"><h3>🤖 AI 客服表現（毛孩時代）</h3><canvas id="cAI"></canvas></div>
   </div>
 </div>
 
@@ -680,9 +681,17 @@ const CAT_SUB = {
   '服務需求':['產品諮詢','服務地區','付款方式','劑型詢問','多規格(大/小包)']
 };
 
+// ── AI 客服月度數據（毛孩時代，2026/05起）──────────────────────
+const AI_MONTHLY = {
+  months:      ['2026/05','2026/06','2026/07'],
+  processed:   [225, 466, 309],
+  resolveRate: [64.4, 68.9, 67.3],
+  transferRate:[35.6, 31.1, 32.7]
+};
+
 // ── Static fallback data ──────────────────────────────────────
 const D = {
-  aiRate: {'達摩本草':[null,null,null,null],'毛孩時代':[null,null,null,null],'PowerHero':[null,null,null,null],'御熹堂':[null,null,null,null]}, // AI回覆率 % (待串接)
+  aiRate: {'達摩本草':[null,null,null,null,null,null,null],'毛孩時代':[null,null,null,null,64.4,68.9,67.3],'PowerHero':[null,null,null,null,null,null,null],'御熹堂':[null,null,null,null,null,null,null]}, // AI自動解決率 % (ai_resolved/ai_processed)
   total:   {'達摩本草':[2316,1970,2878,2409],'毛孩時代':[998,950,1893,1710],'PowerHero':[268,201,249,171],'御熹堂':[267,144,196,170]},
   ch:{
     '蝦皮':{'達摩本草':[401,370,437,367],'毛孩時代':[584,456,664,522],'PowerHero':[162,128,128,93],'御熹堂':[124,48,73,74]},
@@ -881,13 +890,14 @@ function renderAll(){
 }
 
 function updateAll(){
-  ['cTrend','cChanPie','cSat','cGoogle','cShopee','cChanTrend','cType','cPhone','cProdTop'].forEach(dc);
+  ['cTrend','cChanPie','cSat','cGoogle','cShopee','cAI','cChanTrend','cType','cPhone','cProdTop'].forEach(dc);
   try{renderKPI();}catch(e){}
   try{renderTrend();}catch(e){}
   try{renderChanPie();}catch(e){}
   try{renderSatBar();}catch(e){}
   try{renderGoogleBar();}catch(e){}
   try{renderShopeeBar();}catch(e){}
+  try{renderAIBar();}catch(e){}
   try{renderContactTable();}catch(e){}
   try{renderChanTrend();}catch(e){}
   try{renderTypeChart();}catch(e){}
@@ -917,9 +927,13 @@ function renderKPI(){
   const prev=mi!==null&&mi>0?bSum(D.total,br,mi-1):null;
   const tr=prev?((total-prev)/prev*100).toFixed(1):null;
   const complLv1=(D.complCats?Object.values(D.complCats).reduce((a,b)=>a+b,0):COMPLAINTS.length);
-  // AI回覆率：取有資料的品牌平均
+  // AI回覆率：掃全部月份（資料從5月起）
   let aiVals=[];
-  bs.forEach(b=>ms.forEach(m=>{const v=D.aiRate[b]?.[m];if(v!==null&&v!==undefined)aiVals.push(v);}));
+  bs.forEach(b=>{
+    const arr=D.aiRate[b]||[];
+    if(mi!==null){const v=arr[mi];if(v!=null)aiVals.push(v);}
+    else arr.forEach(v=>{if(v!=null)aiVals.push(v);});
+  });
   const aiAvg=aiVals.length?( aiVals.reduce((a,b)=>a+b,0)/aiVals.length).toFixed(1):null;
   document.getElementById('kpiGrid').innerHTML=`
     <div class="kpi c-blue"><div class="kpi-lbl">📞 總進電量</div><div class="kpi-val">${total.toLocaleString()}</div>
@@ -998,6 +1012,13 @@ function renderShopeeBar(){
   const mi=gMI()??3,thr=SHOPEE_THR;
   const vals=BRANDS.map(b=>D.shopee[b][mi].e);
   mkChart('cShopee',{type:'bar',data:{labels:BRANDS,datasets:[{label:'回應率%',data:vals,backgroundColor:BRANDS.map(b=>hexRgba(BRAND_CLR[b],0.85)),borderRadius:4}]},options:{...COPTS,plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'top',color:'#334155',font:{size:11,weight:'bold'},formatter:v=>v+'%'}},scales:{y:{min:60,max:105,ticks:{callback:v=>v+'%'}}}}});
+}
+function renderAIBar(){
+  const d=AI_MONTHLY;
+  mkChart('cAI',{type:'bar',data:{labels:d.months,datasets:[
+    {label:'AI自動解決率%',data:d.resolveRate,backgroundColor:'rgba(124,58,237,0.8)',borderRadius:4},
+    {label:'轉人工率%',    data:d.transferRate,backgroundColor:'rgba(245,158,11,0.8)',borderRadius:4}
+  ]},options:{...COPTS,scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'}}},plugins:{...COPTS.plugins,datalabels:{display:true,anchor:'end',align:'top',color:'#334155',font:{size:10,weight:'bold'},formatter:v=>v+'%'}}}});
 }
 function renderChanTrend(){
   const br=gBr();
