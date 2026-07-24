@@ -158,6 +158,8 @@ tr:hover td{background:#fafafa;}
 
 /* ── DEPT BADGES ── */
 .dept{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;}
+.dept-sel{border:none;border-radius:10px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;}
+.dept-sel:hover{filter:brightness(.93);}
 .d-品管{background:#fee2e2;color:#dc2626;}
 .d-採購{background:#fed7aa;color:#c2410c;}
 .d-倉儲{background:#fef9c3;color:#a16207;}
@@ -1271,7 +1273,7 @@ function renderComplTable(){
       <td><div class="cell-wrap">${c.text}</div></td>
       <td><div class="cell-sm">${c.product||'—'}</div></td>
       <td><div class="cell-sm">${c.followup||c.tsaNote||'—'}</div></td>
-      <td><span class="dept ${r.c}">${r.i} ${r.d}</span></td>
+      <td>${(()=>{const depts=[{d:'客服部',c:'d-客服',i:'📋'},{d:'品管部',c:'d-品管',i:'🔬'},{d:'倉儲部',c:'d-倉儲',i:'🏭'},{d:'採購部',c:'d-採購',i:'📦'}];const cur=pg.dept||r.d;const rc=depts.find(x=>x.d===cur)||r;return `<select class="dept-sel ${rc.c}" data-key="${safeKey}" onchange="saveDept(this)" title="點擊更改指派部門">${depts.map(x=>`<option value="${x.d}" ${x.d===cur?'selected':''}>${x.i} ${x.d}</option>`).join('')}</select>`;})()}</td>
       <td style="min-width:180px;padding:8px;">
         <select class="prog-sel ${stCls}" data-key="${safeKey}" onchange="saveStatus(this)">
           <option value="待處理" ${st==='待處理'?'selected':''}>⏳ 待處理</option>
@@ -1290,6 +1292,16 @@ function renderComplTable(){
   document.getElementById('complPg').innerHTML=pg2;
 }
 
+function saveDept(sel){
+  const key=decodeURIComponent(sel.dataset.key);
+  if(!progress[key]) progress[key]={};
+  progress[key].dept=sel.value;
+  const depts=[{d:'客服部',c:'d-客服'},{d:'品管部',c:'d-品管'},{d:'倉儲部',c:'d-倉儲'},{d:'採購部',c:'d-採購'}];
+  const rc=depts.find(x=>x.d===sel.value)||{c:'d-客服'};
+  sel.className='dept-sel '+rc.c;
+  localStorage.setItem('complProgress',JSON.stringify(progress));
+  notif('🏷️ 指派部門已更新：'+sel.value);
+}
 function saveStatus(sel){
   const key=decodeURIComponent(sel.dataset.key);
   if(!progress[key]) progress[key]={};
