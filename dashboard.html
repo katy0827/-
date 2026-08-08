@@ -11,20 +11,20 @@
    BASE
 ============================================================ */
 :root {
-  --primary:#1e293b; --accent:#3b82f6; --success:#10b981;
-  --warn:#f59e0b; --danger:#ef4444; --shopee:#ee4d2d;
-  --damo:#16417C; --damo-l:#dce9f8;
-  --mao:#55C5C7;  --mao-l:#d9f5f5;
-  --ph:#000000;   --ph-l:#f0f0f0;
-  --yu:#BF2A1D;   --yu-l:#fde8e6;
+  --primary:#FEF0E0; --accent:#C07820; --success:#5AAF7A;
+  --warn:#E8C060; --danger:#E08888; --shopee:#ee4d2d;
+  --damo:#16417C; --damo-l:#e4eef8;
+  --mao:#45b8b8;  --mao-l:#e2f5f5;
+  --ph:#3a3a3a;   --ph-l:#f0f0f0;
+  --yu:#c0392b;   --yu-l:#fce8e6;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Microsoft JhengHei',Arial,sans-serif;background:#f1f5f9;color:#1e293b;font-size:13px;}
+body{font-family:'Microsoft JhengHei',Arial,sans-serif;background:#FFFBF5;color:#111;font-size:13px;}
 a{color:inherit;text-decoration:none;}
 
 /* ── HEADER ── */
 .stickybar{position:sticky;top:0;z-index:200;box-shadow:0 4px 10px rgba(0,0,0,.08);}
-.hd{background:var(--primary);color:white;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.hd{background:var(--primary);color:#111;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 6px rgba(200,150,80,.15);border-bottom:1px solid #F0D8B8;}
 .hd-title{font-size:18px;font-weight:700;}
 .hd-sub{font-size:11px;opacity:.55;margin-top:2px;}
 .hd-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
@@ -34,24 +34,24 @@ a{color:inherit;text-decoration:none;}
 .btn:hover{opacity:.85;}
 .btn-accent{background:var(--accent);color:white;}
 .btn-green{background:var(--success);color:white;}
-.btn-gray{background:#374151;color:white;}
+.btn-gray{background:#D4B890;color:#3a2a10;}
 .btn-shopee{background:var(--shopee);color:white;}
 
 /* ── STATUS PILL ── */
 .pill{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600;}
-.pill-off{background:#374151;color:#9ca3af;}
-.pill-ok{background:#065f46;color:#6ee7b7;}
-.pill-err{background:#7f1d1d;color:#fca5a5;}
-.pill-pending{background:#78350f;color:#fcd34d;}
+.pill-off{background:#e8e0d8;color:#7a6a5a;}
+.pill-ok{background:#d8f0e4;color:#2a7a4a;}
+.pill-err{background:#fde8e8;color:#a03030;}
+.pill-pending{background:#fdefd8;color:#906020;}
 
 /* ── FILTER BAR ── */
-.fbar{background:white;padding:10px 20px;display:flex;gap:14px;align-items:center;border-bottom:1px solid #e2e8f0;flex-wrap:wrap;}
+.fbar{background:white;padding:10px 20px;display:flex;gap:14px;align-items:center;border-bottom:1px solid #F0D8B8;flex-wrap:wrap;}
 .fbar label{font-size:12px;color:#64748b;font-weight:600;}
 .fbar select{padding:5px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;background:white;}
 
 /* ── TABS ── */
-.tabs{background:white;border-bottom:2px solid #e2e8f0;padding:0 20px;display:flex;gap:0;overflow-x:auto;}
-.tab{padding:11px 18px;font-size:13px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;color:#64748b;font-weight:600;white-space:nowrap;transition:all .2s;}
+.tabs{background:white;border-bottom:2px solid #F0D8B8;padding:0 20px;display:flex;gap:0;overflow-x:auto;}
+.tab{padding:11px 18px;font-size:13px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;color:#888;font-weight:600;white-space:nowrap;transition:all .2s;}
 .tab:hover{color:var(--accent);}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 
@@ -61,7 +61,7 @@ a{color:inherit;text-decoration:none;}
 
 /* ── KPI CARDS ── */
 .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:18px;}
-.kpi{background:white;border-radius:10px;padding:14px 18px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:4px solid #e2e8f0;}
+.kpi{background:white;border-radius:10px;padding:14px 18px;box-shadow:0 1px 4px rgba(200,150,80,.08);border-left:4px solid #F0D8B8;}
 .kpi.c-blue{border-left-color:var(--accent);}
 .kpi.c-green{border-left-color:var(--success);}
 .kpi.c-orange{border-left-color:var(--warn);}
@@ -810,8 +810,19 @@ async function syncAll(){
         cat:c.category||'',subCat:c.subCat||'',
         lv:c.level||'',text:c.content||'',product:c.product||'',
         followup:c.followup||'',tsaNote:c.tsaNote||'',
-        assignedDept:c.assignedDept||''
+        assignedDept:c.assignedDept||'',tsaStatus:c.tsaStatus||''
       })).filter(c=>c.brand&&c.cat);
+      // 從 Google Sheets P 欄 tsaStatus 同步結案狀態到 progress
+      COMPLAINTS.forEach(c=>{
+        const gs=c.tsaStatus;
+        if(!gs)return;
+        const key=complKey(c);
+        if(!progress[key])progress[key]={};
+        if(gs==='已結案')progress[key].status='已完成';
+        else if(gs==='處理中')progress[key].status='處理中';
+        else if(gs==='待處理')progress[key].status='待處理';
+      });
+      localStorage.setItem('complProgress',JSON.stringify(progress));
       // rebuild complaint stats
       const cc={};COMPLAINTS.forEach(c=>{cc[c.cat]=(cc[c.cat]||0)+1;});
       Object.assign(D, {complCats: cc});
