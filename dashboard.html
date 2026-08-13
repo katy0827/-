@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>客服品質管理平台 2026</title>
+<title>客服管理平台</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
@@ -273,11 +273,33 @@ td.note-cell{background:#fef9c3;}
 .modal{background:white;border-radius:12px;padding:22px;max-width:520px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.2);}
 .modal-close{float:right;cursor:pointer;font-size:17px;color:#94a3b8;background:none;border:none;}
 
+/* ── SIDEBAR LAYOUT ── */
+.app-layout{display:flex;align-items:flex-start;min-height:100vh;}
+.sidebar{position:sticky;top:0;height:100vh;width:180px;min-width:180px;background:#1e293b;flex-shrink:0;transition:width .22s ease,min-width .22s ease;overflow:hidden;z-index:300;display:flex;flex-direction:column;}
+.sidebar.collapsed{width:52px;min-width:52px;}
+.sidebar-hd{padding:14px 12px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.1);min-height:54px;}
+.sidebar-logo{font-size:20px;flex-shrink:0;}
+.sidebar-title{font-size:13px;font-weight:700;color:#f1f5f9;white-space:nowrap;overflow:hidden;flex:1;}
+.sidebar-toggle{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:13px;flex-shrink:0;padding:2px 4px;line-height:1;transition:transform .22s;}
+.sidebar.collapsed .sidebar-toggle{transform:rotate(180deg);font-size:18px;padding:6px 8px;background:rgba(255,255,255,.12);border-radius:8px;}
+.sidebar.collapsed .sidebar-title,.sidebar.collapsed .nav-text{display:none;}
+.sidebar.collapsed .sidebar-hd{justify-content:center;cursor:pointer;}
+.sidebar.collapsed .sidebar-hd:hover{background:rgba(255,255,255,.07);}
+.sidebar.collapsed .sidebar-logo{display:none;}
+.sidebar-nav{padding:8px 0;flex:1;overflow-y:auto;overflow-x:hidden;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 16px;color:#94a3b8;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;white-space:nowrap;border-right:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#e2e8f0;}
+.nav-item.active{background:rgba(192,120,32,.2);color:#FEF0E0;border-right-color:var(--accent);}
+.nav-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center;}
+.nav-text{overflow:hidden;}
+.main-wrap{flex:1;min-width:0;display:flex;flex-direction:column;}
+
 /* ── RESPONSIVE ── */
 @media(max-width:640px){
   .charts{grid-template-columns:1fr;}
   .kpi-row{grid-template-columns:repeat(2,1fr);}
   .hd{flex-direction:column;gap:6px;align-items:flex-start;}
+  .sidebar{display:none;}
 }
 </style>
 </head>
@@ -285,12 +307,32 @@ td.note-cell{background:#fef9c3;}
 
 <div class="notif" id="notif"></div>
 
-<!-- ===== STICKY 固定區（表頭＋篩選＋分頁）===== -->
+<div class="app-layout">
+
+<!-- ===== SIDEBAR ===== -->
+<aside id="sidebar" class="sidebar">
+  <div class="sidebar-hd" onclick="if(document.getElementById('sidebar').classList.contains('collapsed'))toggleSidebar()">
+    <span class="sidebar-logo">📊</span>
+    <span class="sidebar-title">客服管理平台</span>
+    <button class="sidebar-toggle" onclick="event.stopPropagation();toggleSidebar()">◀</button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="sw('overview')"><span class="nav-icon">📈</span><span class="nav-text">總覽</span></div>
+    <div class="nav-item" onclick="sw('contact')"><span class="nav-icon">📞</span><span class="nav-text">進電分析</span></div>
+    <div class="nav-item" onclick="sw('complaint')"><span class="nav-icon">⚠️</span><span class="nav-text">客訴管理</span></div>
+    <div class="nav-item" onclick="sw('shopee')"><span class="nav-icon">🛒</span><span class="nav-text">蝦皮週報</span></div>
+    <div class="nav-item" onclick="sw('platform')"><span class="nav-icon">⭐</span><span class="nav-text">平台數據</span></div>
+    <div class="nav-item" onclick="sw('routing')"><span class="nav-icon">📋</span><span class="nav-text">指派規則</span></div>
+  </nav>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-wrap">
 <div class="stickybar">
 <!-- ===== HEADER ===== -->
 <div class="hd">
   <div>
-    <div class="hd-title">📊 客服品質管理平台 2026</div>
+    <div class="hd-title">客服管理平台</div>
     <div class="hd-sub">達摩本草 ｜ 毛孩時代 ｜ PowerHero ｜ 御熹堂</div>
   </div>
   <div class="hd-right">
@@ -358,15 +400,6 @@ td.note-cell{background:#fef9c3;}
   </span>
 </div>
 
-<!-- ===== TABS ===== -->
-<div class="tabs">
-  <div class="tab active"  onclick="sw('overview')">📈 總覽</div>
-  <div class="tab"         onclick="sw('contact')">📞 進電分析</div>
-  <div class="tab"         onclick="sw('complaint')">⚠️ 客訴管理</div>
-  <div class="tab"         onclick="sw('shopee')">🛒 蝦皮週報</div>
-  <div class="tab"         onclick="sw('platform')">⭐ 平台數據</div>
-  <div class="tab"         onclick="sw('routing')">📋 指派規則</div>
-</div>
 </div><!-- /stickybar -->
 
 <!-- ====================================================
@@ -399,7 +432,8 @@ td.note-cell{background:#fef9c3;}
   <div style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
     <input id="piSearch" placeholder="🔍 搜尋產品..." oninput="renderProductChart()"
       style="padding:5px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:200px;">
-    <span style="font-size:11px;color:#94a3b8;">點擊橫條可查看週次明細｜品牌/月份請使用上方篩選</span>
+    <span style="font-size:11px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;padding:4px 10px;border-radius:999px;">👉 點下方任一橫條，可查看該產品的週次分布</span>
+    <span style="font-size:11px;color:#94a3b8;">品牌／月份請使用上方篩選</span>
   </div>
   <!-- API 診斷訊息（同步後自動顯示） -->
   <div id="piDebugBar" style="display:none;margin-bottom:10px;padding:8px 14px;border-radius:8px;font-size:12px;border:1px solid #e2e8f0;background:#f8fafc;">
@@ -417,7 +451,8 @@ td.note-cell{background:#fef9c3;}
       </div>
     </div>
     <div class="ccard" style="flex:1;min-width:260px;" id="piDetailCard">
-      <h3>📅 週次明細 <span id="piDetailName" style="color:var(--accent);"></span></h3>
+      <h3>📅 週次明細 <span id="piDetailName" style="color:var(--accent);"></span>
+        <span style="font-size:11px;font-weight:400;color:#94a3b8;margin-left:6px;">（點左圖橫條可換產品）</span></h3>
       <div id="piDetailBody" style="font-size:12px;color:#94a3b8;padding:20px 0;text-align:center;">
         ← 點擊左側產品查看週次分布
       </div>
@@ -585,6 +620,9 @@ td.note-cell{background:#fef9c3;}
   </div>
 </div>
 
+</div><!-- /main-wrap -->
+</div><!-- /app-layout -->
+
 <!-- MODAL: API Settings -->
 <div class="modal-ov" id="apiModal">
   <div class="modal">
@@ -609,7 +647,7 @@ td.note-cell{background:#fef9c3;}
 // ============================================================
 // CONSTANTS
 // ============================================================
-const APPS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwCUpxTPJRWVMi6_UL_oykv5_CAvjdMf25N6WWwar3ETidhQIf-1ilrQ0DElaPPUs51vA/exec';
+const APPS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwZAZPSzKc6cH_TQ8wU-B83Z048nkBJK_comnudB7nJCGfRRIXpq-f11k-ykkcQEcFl/exec';
 // Google Places API 金鑰預設值（此金鑰已在 Google Cloud 設「網站來源限制」＝只允許 katy0827.github.io，
 // 故公開在此 repo 也無法被盜用）。若日後換金鑰，把引號中間的字串換掉即可，不必再進「設定」重填。
 const GOOGLE_KEY_DEFAULT = 'AIzaSyCt_FVEm_GSU5mmwDsAgQ9UBnfmjeam1oU';
@@ -732,6 +770,11 @@ const D = {
 // ── State ──────────────────────────────────────────────────
 let COMPLAINTS = [];
 let filteredC  = [];
+// 把 '2026/5/3'、'2026/05'、'2026-5' 都正規化成 '2026/05'
+function ymKey(s){
+  const m = String(s||'').match(/^(\d{4})[\/\-](\d{1,2})/);
+  return m ? m[1]+'/'+('0'+m[2]).slice(-2) : '';
+}
 let assigned   = {};
 let progress   = JSON.parse(localStorage.getItem('complProgress')||'{}');
 let cPage      = 1;
@@ -781,12 +824,18 @@ function notif(msg,ok=true){const n=document.getElementById('notif');n.textConte
 // TAB SWITCH
 // ============================================================
 function sw(id){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['overview','contact','complaint','shopee','platform','routing'][i]===id));
+  const IDS=['overview','contact','complaint','shopee','platform','routing'];
+  document.querySelectorAll('.nav-item').forEach((t,i)=>t.classList.toggle('active',IDS[i]===id));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('p-'+id).classList.add('active');
   const cf=document.getElementById('complFilters');
   cf.style.display=id==='complaint'?'flex':'none';
   if(id==='shopee'&&!swWkStart)initSW();
+}
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  sb.classList.toggle('collapsed');
+  localStorage.setItem('sbCollapsed',sb.classList.contains('collapsed')?'1':'0');
 }
 
 // ============================================================
@@ -828,35 +877,24 @@ async function syncAll(){
       Object.assign(D, {complCats: cc});
     }
 
-    // Load product inquiry
-    if(j.products&&typeof j.products==='object'){
-      PRODUCT_DATA = j.products;
+    // Load product inquiry：優先用「品牌-產品諮詢」分頁，沒有才從客訴反推
+    const fromSheet = j.products && Object.keys(j.products).length>0;
+    PRODUCT_DATA = fromSheet ? j.products : buildProductDataFromComplaints();
+    const dbBar = document.getElementById('piDebugBar');
+    const dbMsg = document.getElementById('piDebugMsg');
+    if(dbBar && dbMsg){
       const brands = Object.keys(PRODUCT_DATA);
-      // 顯示診斷訊息
-      const dbBar = document.getElementById('piDebugBar');
-      const dbMsg = document.getElementById('piDebugMsg');
-      if(dbBar && dbMsg){
-        if(brands.length===0){
-          dbBar.style.cssText='display:block;margin-bottom:10px;padding:8px 14px;border-radius:8px;font-size:12px;border:1px solid #fca5a5;background:#fef2f2;';
-          dbMsg.innerHTML='⚠️ Apps Script 有回應，但<strong>產品資料是空的</strong>。可能原因：工作表名稱不符或無資料。';
-        } else {
-          dbBar.style.cssText='display:block;margin-bottom:10px;padding:8px 14px;border-radius:8px;font-size:12px;border:1px solid #bbf7d0;background:#f0fdf4;';
-          dbMsg.innerHTML='✅ 產品資料載入成功：' + brands.map(b=>{
-            const mths=Object.keys(PRODUCT_DATA[b]?.monthly||{});
-            const prodCnt=mths.reduce((s,m)=>s+Object.keys(PRODUCT_DATA[b].monthly[m]).length,0);
-            return `<strong>${b}</strong>(${mths.join('、')}，共${prodCnt}筆)`;
-          }).join('　');
-        }
-      }
-      renderProductChart();
-    } else {
-      const dbBar = document.getElementById('piDebugBar');
-      const dbMsg = document.getElementById('piDebugMsg');
-      if(dbBar && dbMsg){
+      if(brands.length===0){
         dbBar.style.cssText='display:block;margin-bottom:10px;padding:8px 14px;border-radius:8px;font-size:12px;border:1px solid #fca5a5;background:#fef2f2;';
-        dbMsg.innerHTML='❌ Apps Script <strong>未回傳產品資料</strong>（j.products 為空）。請確認 Apps Script 已部署最新版本。';
+        dbMsg.innerHTML='⚠️ 沒有產品詢問度資料。請確認 Apps Script 已部署且「品牌-產品諮詢」分頁有資料。';
+      } else if(fromSheet){
+        dbBar.style.display='none';
+      } else {
+        dbBar.style.cssText='display:block;margin-bottom:10px;padding:8px 14px;border-radius:8px;font-size:12px;border:1px solid #fde68a;background:#fffbeb;';
+        dbMsg.innerHTML='⚠️ 使用<strong>客訴記錄</strong>反推的產品數字（非「產品諮詢」分頁）。請確認 Apps Script 的 <code>apiProducts_()</code> 已啟用。';
       }
     }
+    renderProductChart();
 
     // Load platform stats
     if(j.platform&&typeof j.platform==='object'&&!j.platform.note){
@@ -927,6 +965,7 @@ function updateAll(){
   try{renderComplPie();}catch(e){}
   try{renderSeverityChart();}catch(e){}
   try{renderCatMoM();}catch(e){}
+  try{renderDeptGrid();}catch(e){}
 }
 
 // ============================================================
@@ -1005,7 +1044,7 @@ function renderTrend(){
   }))},options:{...COPTS,scales:{y:{beginAtZero:false}},
     plugins:{
       legend:{position:'top',labels:{generateLabels:brandLegendLabels}},
-      datalabels:{display:true,align:'top',anchor:'end',color:'#334155',font:{size:11,weight:'bold'},formatter:v=>v.toLocaleString()}
+      datalabels:{display:(ctx)=>ctx.dataIndex===ctx.dataset.data.length-1,align:'right',anchor:'end',color:'#334155',font:{size:11,weight:'bold'},formatter:v=>v.toLocaleString()}
     }
   }});
 }
@@ -1107,12 +1146,11 @@ function renderCatMoM(){
   document.getElementById('catMoMTitle').textContent = `📈 ${curM} 客訴分類 vs ${prevM}`;
 
   const CATS = Object.keys(DEPT_ROUTE);
-  const norm = m => m.replace(/\/(\d)$/, '/0$1');
 
   // 從全部資料依品牌篩選，再按月份分組
   const base = br==='all' ? COMPLAINTS : COMPLAINTS.filter(c=>c.brand===br);
   const countFor = (month, cat) =>
-    base.filter(c => norm((c.date||'').slice(0,7))===norm(month) && normCat(c.cat)===cat).length;
+    base.filter(c => ymKey(c.date)===ymKey(month) && normCat(c.cat)===cat).length;
 
   const grid = document.getElementById('catMoMGrid');
   grid.innerHTML = CATS.map(cat => {
@@ -1173,9 +1211,18 @@ function renderContactTable(){
 // DEPT GRID
 // ============================================================
 function renderDeptGrid(){
+  // 只套用上方全域篩選（品牌／月份），不套表格內的部門/狀態篩選
+  const br=gBr(), mi=gMI();
+  const gMonth = mi!==null ? MONTHS[mi] : null;
   const dc2={};
   Object.values(DEPT_ROUTE).forEach(r=>{dc2[r.d]=dc2[r.d]||{i:r.i,n:0};});
-  COMPLAINTS.forEach(c=>{const r=DEPT_ROUTE[normCat(c.cat)];if(r)dc2[r.d].n++;});
+  COMPLAINTS.forEach(c=>{
+    if(br!=='all' && c.brand!==br) return;
+    if(gMonth && ymKey(c.date)!==ymKey(gMonth)) return;
+    const st=(progress[complKey(c)]||{}).status||'待處理';
+    if(st==='已完成')return;
+    const r=DEPT_ROUTE[normCat(c.cat)];if(r)dc2[r.d].n++;
+  });
   document.getElementById('deptGrid').innerHTML=Object.entries(dc2).map(([d,v])=>`
     <div class="dept-card" onclick="filterByDept('${d}')">
       <div class="dept-icon">${v.i}</div>
@@ -1224,12 +1271,8 @@ function filterCompl(){
   filteredC = COMPLAINTS.filter(c=>{
     // 全域品牌篩選
     if(gBrand!=='all' && c.brand!==gBrand) return false;
-    // 全域月份篩選：用 date 欄位前7字元比對（格式 2026/05）
-    if(gMonth){
-      const norm = m => m.replace(/\/(\d)$/, '/0$1'); // 2026/5 → 2026/05
-      const dateM = norm((c.date||'').slice(0,7));
-      if(dateM !== norm(gMonth)) return false;
-    }
+    // 全域月份篩選（date 可能是 2026/5/3 或 2026/05/03，一律正規化成 2026/05）
+    if(gMonth && ymKey(c.date) !== ymKey(gMonth)) return false;
     // 表格內篩選
     if(q      && !c.text.toLowerCase().includes(q) && !c.brand.includes(q) && !(c.product||'').toLowerCase().includes(q)) return false;
     if(cat    && c.cat!==cat) return false;
@@ -1346,6 +1389,7 @@ function batchCloseCompl(){
   localStorage.setItem('complProgress',JSON.stringify(progress));
   notif(`✅ 已將 ${targets.length} 筆客訴標記為已完成`,true);
   renderComplTable();
+  renderDeptGrid();
 }
 
 async function sendDeptReport(dept){
@@ -1508,20 +1552,34 @@ function renderSatPanel(){
 async function fetchGoogleReviews(){
   const key=GOOGLE_KEY||localStorage.getItem('googleKey')||'';
   if(!key){notif('⚠️ 請在設定中填入 Google Places API 金鑰',false);return;}
-  const mi=gMI()??3;
-  let cnt=0;
+  let cnt=0, lastErr='';
   for(const [brand,pid] of Object.entries(PLACE_IDS)){
     try{
       const url=`https://places.googleapis.com/v1/places/${pid}?fields=rating,userRatingCount&key=${key}`;
-      const r=await fetch(url);const j=await r.json();
+      const r=await fetch(url);
+      const j=await r.json().catch(()=>({}));
       if(j.rating){
         BRANDS.forEach((_,m)=>{D.google.rating[brand][m]=j.rating;D.google.reviews[brand][m]=j.userRatingCount||0;});
         D.google.fresh[brand]='更新：'+new Date().toLocaleString('zh-TW');
         cnt++;
+      } else {
+        lastErr = (j.error&&j.error.message) || `HTTP ${r.status}`;
+        console.warn('[Google Places]',brand,r.status,j);
       }
-    }catch(e){console.warn(brand,e);}
+    }catch(e){
+      lastErr = e.message || String(e);
+      console.warn('[Google Places]',brand,e);
+    }
   }
-  notif(cnt?`✅ 已更新 ${cnt} 個品牌 Google 評論`:'❌ Google API 更新失敗',cnt>0);
+  if(cnt){
+    notif(`✅ 已更新 ${cnt} 個品牌 Google 評論`);
+  } else {
+    // 金鑰設了網站來源限制，用 file:// 開啟時一定會被拒
+    const isLocal = location.protocol==='file:';
+    notif('❌ Google API 更新失敗：' + (isLocal
+      ? '本機 file:// 開啟不符金鑰的來源限制，請改用已部署的網址'
+      : lastErr||'未知錯誤'), false);
+  }
   renderGooglePanel(); renderGoogleBar();
 }
 
@@ -1791,7 +1849,27 @@ function exportShopeeCSV(){
 // ============================================================
 // PRODUCT INQUIRY
 // ============================================================
-let PRODUCT_DATA = {}; // loaded from Apps Script
+let PRODUCT_DATA = {};
+
+function buildProductDataFromComplaints(){
+  const pd={};
+  COMPLAINTS.forEach(c=>{
+    if(!c.product||!c.brand)return;
+    const parts=(c.date||'').split('/');
+    if(parts.length<3)return;
+    const mStr=parseInt(parts[1])+'月';
+    const day=parseInt(parts[2]);
+    if(!day)return;
+    const wkStr=`第${Math.ceil(day/7)}週`;
+    const wkKey=`${mStr}_${wkStr}`;
+    if(!pd[c.brand])pd[c.brand]={monthly:{},weekly:{}};
+    if(!pd[c.brand].monthly[mStr])pd[c.brand].monthly[mStr]={};
+    pd[c.brand].monthly[mStr][c.product]=(pd[c.brand].monthly[mStr][c.product]||0)+1;
+    if(!pd[c.brand].weekly[wkKey])pd[c.brand].weekly[wkKey]={month:mStr,week:wkStr,products:{}};
+    pd[c.brand].weekly[wkKey].products[c.product]=(pd[c.brand].weekly[wkKey].products[c.product]||0)+1;
+  });
+  return pd;
+}
 
 function renderProductChart(){
   // 使用全域品牌篩選；若為「全部」預設顯示達摩本草
@@ -1837,7 +1915,7 @@ function renderProductChart(){
         : `${brand}・${monthStr||'全年'} 無詢問度資料`;
     }
     document.getElementById('piDetailBody').innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;">無資料</div>';
-    console.warn('[產品詢問度] 無資料 →', {brand, monthStr, hasProdData,
+    if(hasProdData) console.warn('[產品詢問度] 無資料 →', {brand, monthStr,
       keys: PRODUCT_DATA[brand] ? Object.keys(PRODUCT_DATA[brand].monthly||{}) : '(無此品牌)'});
     return;
   }
@@ -1868,6 +1946,7 @@ function renderProductChart(){
         datalabels:{display:true,anchor:'end',align:'right',color:'#334155',font:{size:11,weight:'bold'},formatter:v=>v}
       },
       scales:{x:{beginAtZero:true,grid:{color:'#f1f5f9'}},y:{grid:{display:false}}},
+      onHover:(evt,els)=>{ evt.native.target.style.cursor = els.length?'pointer':'default'; },
       onClick:(evt,els)=>{
         if(!els.length)return;
         const prod=labels[els[0].index];
@@ -1875,48 +1954,69 @@ function renderProductChart(){
       }
     }
   });
+
+  // 預設顯示第一名的週次明細，不用等使用者點擊
+  showProductDetail(brand,monthStr,labels[0]);
 }
 
 function showProductDetail(brand, month, product){
   document.getElementById('piDetailName').textContent = product;
   const weekly = PRODUCT_DATA[brand]?.weekly || {};
 
-  // collect weeks (null month → all weeks)
+  // collect weeks (null month → all weeks)；依「月、起始日」數字排序
+  const wkOrd = w=>{
+    const m = parseInt(String(w.month))||0;
+    const d = parseInt((String(w.week).match(/\/(\d{1,2})/)||[])[1])||0;
+    return m*100+d;
+  };
   const weeks = Object.values(weekly)
     .filter(w=>month===null||w.month===month)
-    .sort((a,b)=>(a.month+a.week).localeCompare(b.month+b.week));
+    .sort((a,b)=>wkOrd(a)-wkOrd(b));
 
   if(!weeks.length){
     document.getElementById('piDetailBody').innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;">無週次資料</div>';
     return;
   }
 
-  const rows = weeks.map(w=>{
-    const v = w.products[product]||0;
-    const bar = v>0?`<div style="display:inline-block;width:${Math.min(v*6,120)}px;height:8px;background:${BRAND_CLR[brand]};border-radius:4px;margin-left:6px;vertical-align:middle;"></div>`:'';
+  const vals  = weeks.map(w=>w.products[product]||0);
+  const maxV  = Math.max(1,...vals);
+  const clr   = BRAND_CLR[brand];
+
+  const rows = weeks.map((w,i)=>{
+    const v = vals[i];
+    const pct = Math.round(v/maxV*100);
+    const isPeak = v>0 && v===maxV;
     const wkLabel = month===null ? `${w.month} ${w.week}` : w.week;
     return `<tr>
-      <td style="padding:6px 8px;color:#64748b;white-space:nowrap;">${wkLabel}</td>
-      <td style="padding:6px 8px;font-weight:700;color:#0f172a;">${v}</td>
-      <td style="padding:6px 4px;">${bar}</td>
+      <td style="padding:5px 8px;color:#64748b;white-space:nowrap;">${wkLabel}</td>
+      <td style="padding:5px 8px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:${v?'#0f172a':'#cbd5e1'};">${v}</td>
+      <td style="padding:5px 8px 5px 4px;width:45%;">
+        <div style="background:#f1f5f9;border-radius:3px;height:7px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:${clr};opacity:${isPeak?1:.55};border-radius:3px;"></div>
+        </div>
+      </td>
     </tr>`;
   }).join('');
 
-  const total = weeks.reduce((s,w)=>s+(w.products[product]||0),0);
+  const total = vals.reduce((s,v)=>s+v,0);
+  const scopeLabel = month===null ? '全年合計' : '月合計';
   document.getElementById('piDetailBody').innerHTML=`
-    <table style="width:100%;border-collapse:collapse;">
+    <table style="width:100%;border-collapse:collapse;text-align:left;">
       <thead><tr>
-        <th style="text-align:left;padding:6px 8px;font-size:11px;color:#94a3b8;border-bottom:1px solid #f1f5f9;">週次</th>
-        <th style="text-align:left;padding:6px 8px;font-size:11px;color:#94a3b8;border-bottom:1px solid #f1f5f9;">次數</th>
+        <th style="padding:6px 8px;font-size:11px;font-weight:600;color:#94a3b8;border-bottom:1px solid #f1f5f9;">週次</th>
+        <th style="padding:6px 8px;font-size:11px;font-weight:600;color:#94a3b8;border-bottom:1px solid #f1f5f9;text-align:right;">次數</th>
         <th style="border-bottom:1px solid #f1f5f9;"></th>
       </tr></thead>
       <tbody>${rows}</tbody>
       <tfoot><tr>
-        <td style="padding:8px;font-weight:700;border-top:2px solid #e2e8f0;">月合計</td>
-        <td style="padding:8px;font-weight:900;color:${BRAND_CLR[brand]};font-size:16px;">${total}</td>
-        <td></td>
+        <td style="padding:8px;font-weight:700;border-top:2px solid #e2e8f0;">${scopeLabel}</td>
+        <td style="padding:8px;text-align:right;font-weight:900;font-variant-numeric:tabular-nums;color:${clr};font-size:16px;border-top:2px solid #e2e8f0;">${total}</td>
+        <td style="border-top:2px solid #e2e8f0;"></td>
       </tr></tfoot>
-    </table>`;
+    </table>
+    <div style="margin-top:10px;font-size:11px;color:#94a3b8;text-align:center;">
+      橫條長度以本表最高週（${maxV}）為基準
+    </div>`;
 }
 
 // ============================================================
@@ -1964,6 +2064,7 @@ function loadSampleComplaints(){
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded',()=>{
+  if(localStorage.getItem('sbCollapsed')==='1')document.getElementById('sidebar').classList.add('collapsed');
   APPS_URL=localStorage.getItem('appsUrl')||APPS_URL_DEFAULT;
   GOOGLE_KEY=localStorage.getItem('googleKey')||(GOOGLE_KEY_DEFAULT.startsWith('AIza')?GOOGLE_KEY_DEFAULT:'');
   loadSampleComplaints();
